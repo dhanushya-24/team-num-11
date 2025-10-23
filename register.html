@@ -1,0 +1,298 @@
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Public+Sans%3Awght%40400%3B500%3B700%3B900"
+    />
+
+    <title>Life link</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body>
+    <div
+      class="relative flex size-full min-h-screen flex-col bg-[#fcf8f8] group/design-root overflow-x-hidden"
+      style="font-family: 'Public Sans', 'Noto Sans', sans-serif"
+    >
+    <script>
+setInterval(() => {
+  const combo = document.querySelector('select.goog-te-combo');
+  if(combo){
+    combo.addEventListener('change', () => {
+      const v = combo.value;
+      document.cookie = "selectedLang=" + v + ";path=/;expires=" + new Date(Date.now()+365*24*60*60*1000).toUTCString() + ";SameSite=Lax";
+      document.cookie = "googtrans=/en/" + v + ";path=/;expires=" + new Date(Date.now()+365*24*60*60*1000).toUTCString() + ";SameSite=Lax";
+    });
+  }
+}, 500);
+</script>
+
+      <div class="layout-container flex h-full grow flex-col">
+        <header
+          class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f3e7e7] px-10 py-3"
+        >
+          <div class="flex items-center gap-4 text-[#1b0d0d]">
+            <div class="size-4">
+              <svg
+                viewBox="0 0 48 48"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+            <h2
+              class="text-[#1b0d0d] text-lg font-bold leading-tight tracking-[-0.015em]"
+            >
+              Life Link
+            </h2>
+          </div>
+          <div class="flex flex-1 justify-end gap-8">
+            <div class="flex items-center gap-9">
+              <nav>
+                <a href="home.html">Homepage</a>
+              </nav>
+              <nav>
+                <a href="map.html">Map</a>
+              </nav>
+            </div>
+          </div>
+        </header>
+       <!-- Google Translate floating dropdown -->
+<div id="google-translate-wrapper" class="fixed z-50" style="top:80px; right:20px;">
+  <div id="google_translate_element"></div>
+</div>
+ 
+        <div class="px-40 flex flex-1 justify-center py-5">
+          <div
+            class="layout-content-container flex flex-col max-w-[960px] flex-1"
+          >
+            <h2
+              class="text-[#1b0d0d] tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5"
+            >
+              Select Your User Type
+            </h2>
+            <div class="p-4 @container">
+              <div
+                class="flex flex-col items-stretch justify-start rounded-lg @xl:flex-row @xl:items-start shadow-[0_0_4px_rgba(0,0,0,0.1)] bg-[#fcf8f8]"
+              >
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg"
+                  style="
+                    background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAWhfGxqZGMtxjmvNuxz_C5ibwRmMXOH-zwRCiSz0wSPnoem54NhWfDOny-rV7AuIAWD82MPEZFzwHwNe_8_dUD6VHtfT4pYvk-igRM23I0oqONAbXPWwBbWSIOFgbtsS558cnHzgxpvK8s7fiIyLgEVRBxSOHuxoLsQMmLxByGzQ-kJllmvnzWSZopkkH9UUNvY7bj7g-kJIm8aSwSAQ1fB_MegK5zhlu8LtvQ71FoTDV_qUS1F_KMI8OfcQi-Z3OT4b1c-IYfnhob');
+                  "
+                ></div>
+                <div
+                  class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4 px-4"
+                >
+                  <p
+                    class="text-[#1b0d0d] text-lg font-bold leading-tight tracking-[-0.015em]"
+                  >
+                    Donor Registration
+                  </p>
+                  <div class="flex items-end gap-3 justify-between">
+                    <p
+                      class="text-[#9a4c4c] text-base font-normal leading-normal"
+                    >
+                      Register as a blood donor and help save lives.
+                    </p>
+
+                    <button
+                      class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-[#ec1313] text-[#fcf8f8] text-sm font-medium leading-normal"
+                    >
+                      <nav>
+                        <a href="donor.html">Register</a>
+                      </nav>
+                    </button>
+                    <button
+                      class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-[#ec1313] text-[#fcf8f8] text-sm font-medium leading-normal"
+                    >
+                      <nav>
+                        <a href="login.html">Login</a>
+                      </nav>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="p-4 @container">
+              <div
+                class="flex flex-col items-stretch justify-start rounded-lg @xl:flex-row @xl:items-start shadow-[0_0_4px_rgba(0,0,0,0.1)] bg-[#fcf8f8]"
+              >
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg"
+                  style="
+                    background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAiLgeiUkaWWDI6FKUXux-W2xVZdmnwXuTOFFbwVAFC8UCf69mpoeCuTUY_3D4bnmR8gyPdYdoOKe3ORIajKTH79gNdj9oiNxpsnrDo6-t1dhWqeP4APQEeiE2Q5_D3xjUNM13PeAQtFvHE7h1hubOtionrmQMGE4nO_ztieIV_mfme7ai6pxCtaXajroD3fgdHYce3Gx7u0Uhd6MMwHyltP2B7DkxyIWEbE0LL1uNO4ecMe7-stbrPy_HU1DUn8ep36uQd1uzCrx3f');
+                  "
+                ></div>
+                <div
+                  class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4 px-4"
+                >
+                  <p
+                    class="text-[#1b0d0d] text-lg font-bold leading-tight tracking-[-0.015em]"
+                  >
+                    Find Blood
+                  </p>
+                  <div class="flex items-end gap-3 justify-between">
+                    <p
+                      class="text-[#9a4c4c] text-base font-normal leading-normal"
+                    >
+                      Search for available blood types and locations.
+                    </p>
+                    <button
+                      class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-[#ec1313] text-[#fcf8f8] text-sm font-medium leading-normal"
+                    >
+                      <nav></nav>
+                        <a href="find.html">Find Blood</a>
+                      </nav>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="p-4 @container">
+              <div
+                class="flex flex-col items-stretch justify-start rounded-lg @xl:flex-row @xl:items-start shadow-[0_0_4px_rgba(0,0,0,0.1)] bg-[#fcf8f8]"
+              >
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg"
+                  style="
+                    background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCwDCQmyP8yfftBYG7Dz7Kq32ckTSlwuxbW7jFFr8WDnSSiLMs8x1HYOtZ6nMs77ARK6d9UbocImnm6JXPYUFrTZztQoDRJEbrHrq7VhwoNgMjJuK6-Ah7JZgjSaoPR5L-XsjnCbzmIRPuDfydXN-0vYTf6JXxw3XR3zq_0rYqeI2l4I9rghuRw5MdDIVkbu_9v0E-Gi2fOiHVSDo6DE6AP6wY-RHmnyrgQ-wlRQ7PTNnrXDBkpv1pOL5IyUfLlDgGTyHddD2HwBZYy');
+                  "
+                ></div>
+                <div
+                  class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4 px-4"
+                >
+                  <p
+                    class="text-[#1b0d0d] text-lg font-bold leading-tight tracking-[-0.015em]"
+                  >
+                    Hospital
+                  </p>
+                  <div class="flex items-end gap-3 justify-between">
+                    <p
+                      class="text-[#9a4c4c] text-base font-normal leading-normal"
+                    >
+                      Manage blood requests and inventory for your hospital.
+                    </p>
+                    <button
+                      class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-[#ec1313] text-[#fcf8f8] text-sm font-medium leading-normal"
+                    >
+                      
+                      <nav>
+                <a href="hospital-register.html">Register</a>
+                   </nav>
+                   
+                    </button>
+                    <button
+                      class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-[#ec1313] text-[#fcf8f8] text-sm font-medium leading-normal"
+                    >
+                      <nav>
+                <a href="hospital-login.html">Login</a>
+                   </nav>
+                   
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="flex justify-center">
+          <div class="flex max-w-[960px] flex-1 flex-col">
+            <footer
+              class="flex flex-col gap-6 px-5 py-10 text-center @container"
+            >
+              <div
+                class="flex flex-wrap items-center justify-center gap-6 @[480px]:flex-row @[480px]:justify-around"
+              >
+                <a
+                  class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
+                  href="#"
+                  >About Us</a
+                >
+                <a
+                  class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
+                  href="#"
+                  >Contact</a
+                >
+                <a
+                  class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
+                  href="#"
+                  >Privacy Policy</a
+                >
+              </div>
+              <p class="text-[#9a4c4c] text-base font-normal leading-normal">
+                © 2025 Life Link. All rights reserved.
+              </p>
+            </footer>
+          </div>
+        </footer>
+      </div>
+    </div>
+   <!-- Google Translate -->
+<div id="google_translate_element" style="position: fixed; top: 65px; right: 90px; z-index: 1000;"></div>
+
+<script>
+  function setCookie(name, value, days) {
+    const d = new Date();
+    d.setTime(d.getTime() + (days*24*60*60*1000));
+    document.cookie = name + "=" + value + ";expires=" + d.toUTCString() + ";path=/";
+  }
+
+  function getCookie(name) {
+    const value = "; " + document.cookie;
+    const parts = value.split("; " + name + "=");
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
+
+  // Load saved language or default to English
+  const savedLang = getCookie("googtrans") || "/en/en";
+  setCookie("googtrans", savedLang, 365);
+
+  // Initialize Google Translate after cookie setup
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'en',
+      includedLanguages: 'en,ta,hi,ml,te,kn,bn,gu,mr,pa,ur,or,as,ne,sd,si,sa,mai,doi,ks',
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+    }, 'google_translate_element');
+  }
+</script>
+
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script>
+  // Observe for language change and store selected language
+  document.addEventListener('click', function() {
+    const iframe = document.querySelector('.goog-te-menu-frame');
+    if (iframe) {
+      iframe.addEventListener('load', function() {
+        const langMenu = iframe.contentDocument.querySelectorAll('.goog-te-menu2-item');
+        langMenu.forEach(item => {
+          item.addEventListener('click', function() {
+            const lang = item.querySelector('span.text').innerText.toLowerCase();
+            const langMap = {
+              tamil: 'ta', hindi: 'hi', malayalam: 'ml', telugu: 'te', kannada: 'kn',
+              bengali: 'bn', gujarati: 'gu', marathi: 'mr', punjabi: 'pa', urdu: 'ur',
+              odia: 'or', assamese: 'as', nepali: 'ne', sindhi: 'sd', sinhala: 'si',
+              sanskrit: 'sa', maithili: 'mai', dogri: 'doi', kashmiri: 'ks', english: 'en'
+            };
+            const selectedLang = langMap[lang] || 'en';
+            setCookie("googtrans", `/en/${selectedLang}`, 365);
+          });
+        });
+      });
+    }
+  });
+</script>
+
+
+  </body>
+</html>

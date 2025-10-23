@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Life Link - Blood Request</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link
+      rel="preload"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans:wght@400;500;700;900&amp;family=Public+Sans:wght@400;500;700;900"
+    />
+  </head>
+
+  <body>
+    <div
+      class="relative flex h-auto min-h-screen w-full flex-col bg-[#fcf8f8] overflow-x-hidden"
+      style="font-family: 'Public Sans', 'Noto Sans', sans-serif"
+    >
+      <div class="layout-container flex h-full grow flex-col">
+        <!-- HEADER -->
+        <header
+          class="flex items-center justify-between border-b border-solid border-b-[#f3e7e8] px-10 py-3"
+        >
+          <div class="flex items-center gap-4 text-[#1b0e0e]">
+            <div class="size-4">
+              <svg
+                viewBox="0 0 48 48"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+            <h2 class="text-lg font-bold">Life Link</h2>
+          </div>
+
+          <div class="flex flex-1 justify-end gap-8">
+            <div class="flex items-center gap-9">
+              <nav><a href="home.html">HomePage</a></nav>
+              <nav><a href="map.html">Map</a></nav>
+            </div>
+          </div>
+        </header>
+
+        <!-- MAIN FORM -->
+        <div class="px-40 flex flex-1 justify-center py-5">
+          <div class="flex flex-col max-w-[960px] flex-1">
+            <div class="flex flex-wrap justify-between gap-3 p-4">
+              <p class="text-[32px] font-bold leading-tight min-w-72">
+                Hospital Blood Request &amp; Emergency
+              </p>
+            </div>
+
+            <form id="requestForm">
+              <div class="flex flex-col gap-4 px-4 py-3 max-w-[480px]">
+                <label class="flex flex-col">
+                  <p class="pb-2 font-medium">Hospital Name</p>
+                  <input
+                    id="hospitalName"
+                    placeholder="Hospital Name"
+                    class="form-input border border-[#e7d0d1] bg-[#fcf8f8] rounded-lg h-14 p-[15px]"
+                  />
+                </label>
+
+                <label class="flex flex-col">
+                  <p class="pb-2 font-medium">Contact Person</p>
+                  <input
+                    id="contactPerson"
+                    placeholder="Dr. Emily Carter"
+                    class="form-input border border-[#e7d0d1] bg-[#fcf8f8] rounded-lg h-14 p-[15px]"
+                  />
+                </label>
+
+                <label class="flex flex-col">
+                  <p class="pb-2 font-medium">Contact Details</p>
+                  <input
+                    id="contactDetails"
+                    placeholder="emily.carter@hospital.com"
+                    class="form-input border border-[#e7d0d1] bg-[#fcf8f8] rounded-lg h-14 p-[15px]"
+                  />
+                </label>
+
+                <label class="flex flex-col">
+                  <p class="pb-2 font-medium">Patient Information (Optional)</p>
+                  <input
+                    id="patientInfo"
+                    placeholder="Patient Name/ID"
+                    class="form-input border border-[#e7d0d1] bg-[#fcf8f8] rounded-lg h-14 p-[15px]"
+                  />
+                </label>
+
+                <label class="flex flex-col">
+                  <p class="pb-2 font-medium">Blood Type</p>
+                  <select
+                    id="bloodType"
+                    class="form-input border border-[#e7d0d1] bg-[#fcf8f8] rounded-lg h-14 p-[15px]"
+                  >
+                    <option value="">Select Blood Type</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </label>
+
+                <label class="flex flex-col">
+                  <p class="pb-2 font-medium">Quantity Needed</p>
+                  <input
+                    id="quantity"
+                    placeholder="Enter Quantity"
+                    class="form-input border border-[#e7d0d1] bg-[#fcf8f8] rounded-lg h-14 p-[15px]"
+                  />
+                </label>
+
+                <div class="flex gap-3">
+                  <label
+                    class="flex items-center justify-center border border-[#e7d0d1] rounded-lg px-4 h-11 cursor-pointer has-[:checked]:border-[#ea2832]"
+                  >
+                    Standard
+                    <input
+                      type="radio"
+                      name="urgency"
+                      value="Standard"
+                      class="invisible absolute"
+                    />
+                  </label>
+
+                  <label
+                    class="flex items-center justify-center border border-[#e7d0d1] rounded-lg px-4 h-11 cursor-pointer has-[:checked]:border-[#ea2832]"
+                  >
+                    Urgent
+                    <input
+                      type="radio"
+                      name="urgency"
+                      value="Urgent"
+                      class="invisible absolute"
+                    />
+                  </label>
+
+                  <label
+                    class="flex items-center justify-center border border-[#e7d0d1] rounded-lg px-4 h-11 cursor-pointer has-[:checked]:border-[#ea2832]"
+                  >
+                    Emergency
+                    <input
+                      type="radio"
+                      name="urgency"
+                      value="Emergency"
+                      class="invisible absolute"
+                    />
+                  </label>
+                </div>
+
+                <label class="flex flex-col">
+                  <p class="pb-2 font-medium">Date/Time Needed</p>
+                  <input
+                    id="dateTime"
+                    type="datetime-local"
+                    class="form-input border border-[#e7d0d1] bg-[#fcf8f8] rounded-lg h-14 p-[15px]"
+                  />
+                </label>
+
+                <label class="flex flex-col">
+                  <p class="pb-2 font-medium">Notes</p>
+                  <textarea
+                    id="notes"
+                    placeholder="Additional information or special requests"
+                    class="form-input border border-[#e7d0d1] bg-[#fcf8f8] rounded-lg min-h-36 p-[15px]"
+                  ></textarea>
+                </label>
+
+                <div class="flex justify-end">
+                  <button
+                    type="submit"
+                    class="rounded-lg h-10 px-4 bg-[#ea2832] text-[#fcf8f8] font-bold"
+                  >
+                    Submit Request
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <footer class="flex justify-center py-10">
+          <p class="text-[#994d51] text-base">@2025 Life Link</p>
+        </footer>
+      </div>
+    </div>
+    <script>
+      document
+        .getElementById("requestForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const data = {
+            hospitalName: document.getElementById("hospitalName").value,
+            contactPerson: document.getElementById("contactPerson").value,
+            contactDetails: document.getElementById("contactDetails").value,
+            patientInfo: document.getElementById("patientInfo").value,
+            bloodType: document.getElementById("bloodType").value,
+            quantity: document.getElementById("quantity").value,
+            urgency:
+              document.querySelector("input[name='urgency']:checked")?.value ||
+              "N/A",
+            dateTime: document.getElementById("dateTime").value,
+            notes: document.getElementById("notes").value,
+          };
+
+          try {
+            const res = await fetch("http://localhost:4000/api/requests", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            });
+
+            const result = await res.json();
+            if (res.ok && result.id) {
+              window.location.href = `request-info.html?id=${result.id}`;
+            } else {
+              alert("Failed to save request: " + (result.error || "unknown"));
+            }
+          } catch (err) {
+            console.error(err);
+            alert(
+              "Network error while saving request. Make sure requests_server.js is running and open request.html via http://localhost:4000/request.html"
+            );
+          }
+        });
+    </script>
+  </body>
+</html>

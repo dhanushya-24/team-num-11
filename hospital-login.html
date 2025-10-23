@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Login</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body class="bg-[#fcf8f8] font-sans">
+    <div class="flex justify-center py-20">
+      <div class="w-full max-w-md bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-2xl font-bold text-[#1b0e0e] mb-6 text-center">
+          Hospital Login
+        </h2>
+        <form id="hospitalLoginForm" class="space-y-4">
+          <div>
+            <label class="block mb-1 font-medium">Email</label>
+            <input
+              type="email"
+              id="email"
+              required
+              placeholder="Enter email"
+              class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+            />
+          </div>
+
+          <div>
+            <label class="block mb-1 font-medium">Password</label>
+            <input
+              type="password"
+              id="password"
+              required
+              placeholder="Enter password"
+              class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="w-full bg-[#ec1313] text-white font-bold py-3 rounded-lg"
+          >
+            <nav>
+              <a href="hospital-profile.html">Login</a>
+            </nav>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("hospitalLoginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          try {
+            const res = await fetch("http://localhost:3000/api/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, password }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Login failed");
+            // store returned hospital object in localStorage
+            localStorage.setItem(
+              "loggedInHospital",
+              JSON.stringify(data.hospital)
+            );
+            alert("Login successful!");
+            window.location.href = "hospital-profile.html";
+          } catch (err) {
+            alert("Error: " + err.message);
+          }
+        });
+    </script>
+  </body>
+</html>

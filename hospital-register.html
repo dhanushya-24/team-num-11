@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Life Link - Hospital Registration</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body class="bg-[#fcf8f8] font-sans">
+    <div class="flex justify-center py-10">
+      <div class="w-full max-w-xl bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-2xl font-bold text-[#1b0e0e] mb-6 text-center">
+          Hospital Registration
+        </h2>
+
+        <form id="hospitalRegisterForm" class="space-y-4">
+          <div>
+            <label class="block mb-1 font-medium">Hospital Name</label>
+            <input
+              type="text"
+              id="hospitalName"
+              required
+              placeholder="Enter hospital name"
+              class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+            />
+          </div>
+
+          <div>
+            <label class="block mb-1 font-medium">Hospital Address</label>
+            <input
+              type="text"
+              id="hospitalAddress"
+              required
+              placeholder="Enter hospital address"
+              class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+            />
+          </div>
+
+          <div>
+            <label class="block mb-1 font-medium">Contact Person Name</label>
+            <input
+              type="text"
+              id="contactPerson"
+              required
+              placeholder="Enter contact person name"
+              class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+            />
+          </div>
+
+          <div>
+            <label class="block mb-1 font-medium"
+              >Hospital Contact Number</label
+            >
+            <input
+              type="text"
+              id="contactNumber"
+              required
+              placeholder="Enter contact number"
+              class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+            />
+          </div>
+
+          <div>
+            <label class="block mb-1 font-medium">Hospital Email</label>
+            <input
+              type="email"
+              id="email"
+              required
+              placeholder="Enter email"
+              class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+            />
+          </div>
+
+          <div>
+            <label class="block mb-1 font-medium">Password</label>
+            <input
+              type="password"
+              id="password"
+              required
+              placeholder="Enter password"
+              class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+            />
+          </div>
+
+          <div>
+            <label class="block mb-1 font-medium">Confirm Password</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              required
+              placeholder="Confirm password"
+              class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+            />
+          </div>
+
+          <div>
+            <button
+              type="button"
+              id="locationBtn"
+              class="w-full bg-[#ec1313] text-white font-bold py-3 rounded-lg mb-2"
+            >
+              Allow Location Access
+            </button>
+            <p id="locationStatus" class="text-sm text-gray-600"></p>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full bg-[#ec1313] text-white font-bold py-3 rounded-lg"
+          >
+            <nav>
+              <a href="hospital-login.html">Register</a>
+            </nav>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      let hospitalLocation = null;
+
+      document.getElementById("locationBtn").addEventListener("click", () => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              hospitalLocation = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+              };
+              document.getElementById("locationStatus").textContent =
+                "Location access granted!";
+            },
+            () => {
+              document.getElementById("locationStatus").textContent =
+                "Location access denied.";
+            }
+          );
+        } else {
+          document.getElementById("locationStatus").textContent =
+            "Geolocation not supported.";
+        }
+      });
+
+      document
+        .getElementById("hospitalRegisterForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("hospitalName").value;
+          const address = document.getElementById("hospitalAddress").value;
+          const contactPerson = document.getElementById("contactPerson").value;
+          const contactNumber = document.getElementById("contactNumber").value;
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const confirmPassword =
+            document.getElementById("confirmPassword").value;
+
+          if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+          }
+
+          const payload = {
+            name,
+            address,
+            contactPerson,
+            contactNumber,
+            email,
+            password,
+            location: hospitalLocation,
+          };
+
+          try {
+            const res = await fetch("http://localhost:3000/api/register", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Register failed");
+            alert("Registration successful! Please login.");
+            // optionally store a returned id: data.id
+            window.location.href = "hospital-login.html";
+          } catch (err) {
+            alert("Error: " + err.message);
+          }
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Life Link - Request Info</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link
+      rel="preload"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans:wght@400;500;700;900&amp;family=Public+Sans:wght@400;500;700;900"
+    />
+  </head>
+
+  <body
+    class="bg-[#fcf8f8] min-h-screen flex flex-col items-center justify-center"
+    style="font-family: 'Public Sans', 'Noto Sans', sans-serif"
+  >
+    <div class="max-w-[600px] w-full bg-white rounded-2xl shadow p-8">
+      <h2 class="text-2xl font-bold mb-6 text-center text-[#1b0e0e]">
+        Request Information
+      </h2>
+      <div id="info" class="space-y-4 text-[#1b0e0e] text-base"></div>
+
+      <div class="flex justify-center mt-6">
+        <a
+          href="request.html"
+          class="rounded-lg bg-[#ea2832] text-[#fcf8f8] px-6 py-2 font-bold"
+        >
+          Back to Form
+        </a>
+      </div>
+    </div>
+
+    <script>
+      async function loadRequest() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+        const infoDiv = document.getElementById("info");
+
+        if (!id) {
+          infoDiv.innerHTML = "<p>No request ID provided.</p>";
+          return;
+        }
+
+        try {
+          const res = await fetch(`http://localhost:4000/api/requests/${id}`);
+          if (!res.ok) throw new Error("Not found");
+          const data = await res.json();
+
+          infoDiv.innerHTML = `
+      <p><strong>🏥 Hospital Name:</strong> ${data.hospitalName ?? ""}</p>
+      <p><strong>👩‍⚕️ Contact Person:</strong> ${data.contactPerson ?? ""}</p>
+      <p><strong>📞 Contact Details:</strong> ${data.contactDetails ?? ""}</p>
+      <p><strong>🧑‍🤝‍🧑 Patient Info:</strong> ${data.patientInfo ?? ""}</p>
+      <p><strong>🩸 Blood Type:</strong> ${data.bloodType ?? ""}</p>
+      <p><strong>📦 Quantity:</strong> ${data.quantity ?? ""}</p>
+      <p><strong>⚠️ Urgency:</strong> ${data.urgency ?? ""}</p>
+      <p><strong>🕒 Date/Time:</strong> ${data.dateTime ?? ""}</p>
+      <p><strong>📝 Notes:</strong> ${data.notes ?? ""}</p>
+      <p class="text-sm text-gray-500">Request ID: ${data.id} • Created: ${
+            data.created_at ?? ""
+          }</p>
+    `;
+        } catch (err) {
+          infoDiv.innerHTML = "<p>No request data found.</p>";
+        }
+      }
+
+      loadRequest();
+    </script>
+  </body>
+</html>

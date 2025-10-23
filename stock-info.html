@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Public+Sans%3Awght%40400%3B500%3B700%3B900"
+    />
+    <title>Life Link - Stock Info</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body>
+    <div
+      class="relative flex size-full min-h-screen flex-col bg-[#fcf8f8] group/design-root overflow-x-hidden"
+      style="font-family: 'Public Sans', 'Noto Sans', sans-serif"
+    >
+      <div class="layout-container flex h-full grow flex-col">
+        <header
+          class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f3e7e7] px-10 py-3"
+        >
+          <div class="flex items-center gap-4 text-[#1b0d0d]">
+            <h2
+              class="text-[#1b0d0d] text-lg font-bold leading-tight tracking-[-0.015em]"
+            >
+              Life Link
+            </h2>
+          </div>
+          <div class="flex flex-1 justify-end gap-8">
+            <div class="flex items-center gap-9">
+              <nav><a href="home.html">Homepage</a></nav>
+              <nav><a href="map.html">Map</a></nav>
+            </div>
+          </div>
+        </header>
+
+        <div class="px-40 flex flex-1 justify-center py-5">
+          <div
+            class="layout-content-container flex flex-col max-w-[960px] flex-1"
+          >
+            <div class="flex flex-wrap justify-between gap-3 p-4">
+              <p
+                class="text-[#1b0d0d] tracking-light text-[32px] font-bold leading-tight min-w-72"
+              >
+                Hospital & Blood Stock Details
+              </p>
+            </div>
+
+            <div class="px-4 py-3">
+              <h2
+                class="text-[#1b0d0d] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5"
+              >
+                Hospital Information
+              </h2>
+              <div class="px-4 py-3">
+                <p
+                  id="hospitalNameDisplay"
+                  class="text-[#1b0d0d] text-base pb-1"
+                ></p>
+                <p
+                  id="addressDisplay"
+                  class="text-[#1b0d0d] text-base pb-1"
+                ></p>
+                <p
+                  id="contactDisplay"
+                  class="text-[#1b0d0d] text-base pb-1"
+                ></p>
+                <p id="emailDisplay" class="text-[#1b0d0d] text-base pb-1"></p>
+              </div>
+
+              <h2
+                class="text-[#1b0d0d] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5"
+              >
+                Blood Stock
+              </h2>
+              <div
+                class="flex overflow-hidden rounded-lg border border-[#e7cfcf] bg-[#fcf8f8]"
+              >
+                <table class="flex-1" id="bloodTableDisplay">
+                  <thead>
+                    <tr class="bg-[#fcf8f8]">
+                      <th
+                        class="px-4 py-3 text-left text-[#1b0d0d] w-[400px] text-sm font-medium leading-normal"
+                      >
+                        Blood Group
+                      </th>
+                      <th
+                        class="px-4 py-3 text-left text-[#1b0d0d] w-[400px] text-sm font-medium leading-normal"
+                      >
+                        Units Needed
+                      </th>
+                      <th
+                        class="px-4 py-3 text-left text-[#1b0d0d] w-[400px] text-sm font-medium leading-normal"
+                      >
+                        Units Available
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const hospitalInfo = JSON.parse(localStorage.getItem("hospitalInfo"));
+      const bloodGroups = JSON.parse(localStorage.getItem("bloodGroups"));
+
+      if (hospitalInfo) {
+        document.getElementById(
+          "hospitalNameDisplay"
+        ).innerText = `Hospital Name: ${hospitalInfo.name}`;
+        document.getElementById(
+          "addressDisplay"
+        ).innerText = `Address: ${hospitalInfo.address}`;
+        document.getElementById(
+          "contactDisplay"
+        ).innerText = `Contact: ${hospitalInfo.contact}`;
+        document.getElementById(
+          "emailDisplay"
+        ).innerText = `Email: ${hospitalInfo.email}`;
+      }
+
+      const tbody = document.querySelector("#bloodTableDisplay tbody");
+      if (bloodGroups) {
+        bloodGroups.forEach((bg) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="px-4 py-2">${bg.group}</td>
+            <td class="px-4 py-2">${bg.needed || 0}</td>
+            <td class="px-4 py-2">${bg.available || 0}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    </script>
+  </body>
+</html>

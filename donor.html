@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Life Link - Donor Registration</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body class="bg-[#fcf8f8] font-sans">
+    <div
+      class="relative flex size-full min-h-screen flex-col bg-[#fcf8f8] group/design-root overflow-x-hidden"
+      style="font-family: 'Public Sans', 'Noto Sans', sans-serif"
+    >
+      <div class="layout-container flex h-full grow flex-col">
+        <header
+          class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f3e7e7] px-10 py-3"
+        >
+          <div class="flex items-center gap-4 text-[#1b0d0d]">
+            <div class="size-4">
+              <svg
+                viewBox="0 0 48 48"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+            <h2
+              class="text-[#1b0d0d] text-lg font-bold leading-tight tracking-[-0.015em]"
+            >
+              Life Link
+            </h2>
+          </div>
+          <div class="flex flex-1 justify-end gap-8">
+            <div class="flex items-center gap-9">
+              <nav>
+                <a href="home.html">Homepage</a>
+              </nav>
+              <nav>
+                <a href="map.html">Map</a>
+              </nav>
+            </div>
+          </div>
+        </header>
+        <div class="px-40 flex flex-1 justify-center py-5">
+          <div
+            class="layout-content-container flex flex-col max-w-[960px] flex-1"
+          >
+            <div class="flex justify-center py-10">
+              <div class="w-full max-w-xl bg-white shadow-md rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-[#1b0d0d] mb-6">
+                  Donor Registration
+                </h2>
+
+                <!-- ✅ Registration Form -->
+                <form id="registerForm" class="space-y-4">
+                  <div>
+                    <label class="block mb-1 font-medium">Full Name</label>
+                    <input
+                      type="text"
+                      id="name"
+                      required
+                      placeholder="Enter your full name"
+                      class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block mb-1 font-medium">Date of Birth</label>
+                    <input
+                      type="date"
+                      id="dob"
+                      required
+                      class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block mb-1 font-medium">Gender</label>
+                    <select
+                      id="gender"
+                      required
+                      class="form-select w-full rounded-lg border border-[#e7cfcf] p-3"
+                    >
+                      <option value="">Select your gender</option>
+                      <option>Male</option>
+                      <option>Female</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block mb-1 font-medium">Blood Type</label>
+                    <select
+                      id="bloodType"
+                      required
+                      class="form-select w-full rounded-lg border border-[#e7cfcf] p-3"
+                    >
+                      <option value="">Select your blood type</option>
+                      <option>A+</option>
+                      <option>A-</option>
+                      <option>B+</option>
+                      <option>B-</option>
+                      <option>AB+</option>
+                      <option>AB-</option>
+                      <option>O+</option>
+                      <option>O-</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block mb-1 font-medium">Contact Number</label>
+                    <input
+                      type="text"
+                      id="contact"
+                      required
+                      placeholder="Enter your contact number"
+                      class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block mb-1 font-medium">Email Address</label>
+                    <input
+                      type="email"
+                      id="email"
+                      required
+                      placeholder="Enter your email"
+                      class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block mb-1 font-medium"
+                      >Physical Address</label
+                    >
+                    <input
+                      type="text"
+                      id="address"
+                      required
+                      placeholder="Enter your address"
+                      class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block mb-1 font-medium">Password</label>
+                    <input
+                      type="password"
+                      id="password"
+                      required
+                      placeholder="Create a password"
+                      class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block mb-1 font-medium"
+                      >Confirm Password</label
+                    >
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      required
+                      placeholder="Confirm your password"
+                      class="form-input w-full rounded-lg border border-[#e7cfcf] p-3"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    class="w-full bg-[#ec1313] text-white font-bold py-3 rounded-lg"
+                  >
+                    Register
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ✅ JavaScript -->
+    <script>
+      document
+        .getElementById("registerForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const name = document.getElementById("name").value;
+          const dob = document.getElementById("dob").value;
+          const gender = document.getElementById("gender").value;
+          const address = document.getElementById("address").value;
+          const email = document.getElementById("email").value;
+          const contact = document.getElementById("contact").value;
+          const bloodType = document.getElementById("bloodType").value;
+          const password = document.getElementById("password").value;
+          const confirmPassword =
+            document.getElementById("confirmPassword").value;
+
+          if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+          }
+
+          try {
+            const resp = await fetch("http://localhost:3001/api/register", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name,
+                dob,
+                gender,
+                address,
+                email,
+                contact,
+                bloodType,
+                password,
+              }),
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || "Registration failed");
+
+            alert("Registration successful! Please login.");
+            window.location.href = "login.html";
+          } catch (err) {
+            alert("Error: " + err.message);
+          }
+        });
+    </script>
+  </body>
+</html>

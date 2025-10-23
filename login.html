@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Life Link - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="flex items-center justify-center min-h-screen bg-[#fcf8f8]">
+    <div
+      class="relative flex size-full min-h-screen flex-col bg-[#fcf8f8] group/design-root overflow-x-hidden"
+      style="font-family: 'Public Sans', 'Noto Sans', sans-serif"
+    >
+      <div class="layout-container flex h-full grow flex-col">
+        <header
+          class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f3e7e7] px-10 py-3"
+        >
+          <div class="flex items-center gap-4 text-[#1b0d0d]">
+            <div class="size-4">
+              <svg
+                viewBox="0 0 48 48"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+            <h2
+              class="text-[#1b0d0d] text-lg font-bold leading-tight tracking-[-0.015em]"
+            >
+              Life Link
+            </h2>
+          </div>
+          <div class="flex flex-1 justify-end gap-8">
+            <div class="flex items-center gap-9">
+              <nav>
+                <a href="home.html">Homepage</a>
+              </nav>
+              <nav>
+                <a href="map.html">Map</a>
+              </nav>
+            </div>
+          </div>
+        </header>
+        <div class="px-40 flex flex-1 justify-center py-5">
+          <div
+            class="layout-content-container flex flex-col max-w-[960px] flex-1"
+          >
+            <div class="flex justify-center py-10">
+              <div class="w-full max-w-xl bg-white shadow-md rounded-lg p-10">
+                <h2 class="text-2xl font-bold text-center text-[#1b0e0e] mb-8">
+                  Login
+                </h2>
+                <form id="loginForm" class="space-y-4">
+                  <input
+                    type="email"
+                    id="loginEmail"
+                    placeholder="Email"
+                    required
+                    class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea2832]"
+                  />
+                  <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Password"
+                    required
+                    class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea2832]"
+                  />
+                  <button
+                    type="submit"
+                    class="w-full bg-[#ea2832] text-white font-semibold py-3 rounded-lg hover:bg-[#c82129] transition"
+                  >
+                    Login
+                  </button>
+                </form>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                  Don’t have an account?
+                  <a href="register.html" class="text-[#ea2832] font-medium"
+                    >Register</a
+                  >
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const email = document.getElementById("loginEmail").value;
+          const password = document.getElementById("loginPassword").value;
+
+          try {
+            const resp = await fetch("http://localhost:3001/api/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, password }),
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || "Login failed");
+
+            localStorage.setItem(
+              "loggedInUser",
+              JSON.stringify({
+                id: data.id,
+                name: data.name,
+                email: data.email,
+              })
+            );
+            alert("Login successful!");
+            window.location.href = "profile.html";
+          } catch (err) {
+            alert("Error: " + err.message);
+          }
+        });
+    </script>
+  </body>
+</html>

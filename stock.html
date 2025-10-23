@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Public+Sans%3Awght%40400%3B500%3B700%3B900"
+    />
+    <title>Life Link</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body>
+    <div
+      class="relative flex size-full min-h-screen flex-col bg-[#fcf8f8] group/design-root overflow-x-hidden"
+      style="font-family: 'Public Sans', 'Noto Sans', sans-serif"
+    >
+      <div class="layout-container flex h-full grow flex-col">
+        <!-- Header remains the same -->
+        <header
+          class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f3e7e7] px-10 py-3"
+        >
+          <div class="flex items-center gap-4 text-[#1b0d0d]">
+            <div class="size-4">
+              <!-- Logo SVG -->
+            </div>
+            <h2
+              class="text-[#1b0d0d] text-lg font-bold leading-tight tracking-[-0.015em]"
+            >
+              Life Link
+            </h2>
+          </div>
+          <div class="flex flex-1 justify-end gap-8">
+            <div class="flex items-center gap-9">
+              <nav><a href="home.html">Homepage</a></nav>
+              <nav><a href="map.html">Map</a></nav>
+            </div>
+          </div>
+        </header>
+
+        <!-- Main Form -->
+        <div class="px-40 flex flex-1 justify-center py-5">
+          <div
+            class="layout-content-container flex flex-col max-w-[960px] flex-1"
+          >
+            <div class="flex flex-wrap justify-between gap-3 p-4">
+              <p
+                class="text-[#1b0d0d] tracking-light text-[32px] font-bold leading-tight min-w-72"
+              >
+                Hospital Registration/Login and Blood Stock Management
+              </p>
+            </div>
+
+            <!-- Hospital Info -->
+            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+              <label class="flex flex-col min-w-40 flex-1">
+                <p
+                  class="text-[#1b0d0d] text-base font-medium leading-normal pb-2"
+                >
+                  Hospital Name
+                </p>
+                <input
+                  id="hospitalName"
+                  placeholder="Enter Hospital Name"
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0d0d] focus:outline-0 focus:ring-0 border border-[#e7cfcf] bg-[#fcf8f8] focus:border-[#e7cfcf] h-14 placeholder:text-[#9a4c4c] p-[15px] text-base font-normal leading-normal"
+                />
+              </label>
+            </div>
+            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+              <label class="flex flex-col min-w-40 flex-1">
+                <p
+                  class="text-[#1b0d0d] text-base font-medium leading-normal pb-2"
+                >
+                  Address
+                </p>
+                <input
+                  id="address"
+                  placeholder="Enter Address"
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0d0d] focus:outline-0 focus:ring-0 border border-[#e7cfcf] bg-[#fcf8f8] focus:border-[#e7cfcf] h-14 placeholder:text-[#9a4c4c] p-[15px] text-base font-normal leading-normal"
+                />
+              </label>
+            </div>
+            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+              <label class="flex flex-col min-w-40 flex-1">
+                <p
+                  class="text-[#1b0d0d] text-base font-medium leading-normal pb-2"
+                >
+                  Contact
+                </p>
+                <input
+                  id="contact"
+                  placeholder="Enter Contact Number"
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0d0d] focus:outline-0 focus:ring-0 border border-[#e7cfcf] bg-[#fcf8f8] focus:border-[#e7cfcf] h-14 placeholder:text-[#9a4c4c] p-[15px] text-base font-normal leading-normal"
+                />
+              </label>
+            </div>
+            <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+              <label class="flex flex-col min-w-40 flex-1">
+                <p
+                  class="text-[#1b0d0d] text-base font-medium leading-normal pb-2"
+                >
+                  Email
+                </p>
+                <input
+                  id="email"
+                  placeholder="Enter Email Address"
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0d0d] focus:outline-0 focus:ring-0 border border-[#e7cfcf] bg-[#fcf8f8] focus:border-[#e7cfcf] h-14 placeholder:text-[#9a4c4c] p-[15px] text-base font-normal leading-normal"
+                />
+              </label>
+            </div>
+
+            <!-- Blood Stock Table -->
+            <h2
+              class="text-[#1b0d0d] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5"
+            >
+              Blood Stock Availability
+            </h2>
+            <div class="px-4 py-3 @container">
+              <div
+                class="flex overflow-hidden rounded-lg border border-[#e7cfcf] bg-[#fcf8f8]"
+              >
+                <table class="flex-1" id="bloodTable">
+                  <thead>
+                    <tr class="bg-[#fcf8f8]">
+                      <th
+                        class="px-4 py-3 text-left text-[#1b0d0d] w-[400px] text-sm font-medium leading-normal"
+                      >
+                        Blood Group
+                      </th>
+                      <th
+                        class="px-4 py-3 text-left text-[#1b0d0d] w-[400px] text-sm font-medium leading-normal"
+                      >
+                        Units Needed
+                      </th>
+                      <th
+                        class="px-4 py-3 text-left text-[#1b0d0d] w-[400px] text-sm font-medium leading-normal"
+                      >
+                        Units Available
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Blood groups -->
+                    <tr>
+                      <td class="px-4 py-2">A+</td>
+                      <td><input type="number" class="unitNeeded" /></td>
+                      <td><input type="number" class="unitAvailable" /></td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2">A-</td>
+                      <td><input type="number" class="unitNeeded" /></td>
+                      <td><input type="number" class="unitAvailable" /></td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2">B+</td>
+                      <td><input type="number" class="unitNeeded" /></td>
+                      <td><input type="number" class="unitAvailable" /></td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2">B-</td>
+                      <td><input type="number" class="unitNeeded" /></td>
+                      <td><input type="number" class="unitAvailable" /></td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2">AB+</td>
+                      <td><input type="number" class="unitNeeded" /></td>
+                      <td><input type="number" class="unitAvailable" /></td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2">AB-</td>
+                      <td><input type="number" class="unitNeeded" /></td>
+                      <td><input type="number" class="unitAvailable" /></td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2">O+</td>
+                      <td><input type="number" class="unitNeeded" /></td>
+                      <td><input type="number" class="unitAvailable" /></td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2">O-</td>
+                      <td><input type="number" class="unitNeeded" /></td>
+                      <td><input type="number" class="unitAvailable" /></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="flex px-4 py-3 justify-end">
+              <button
+                id="updateBtn"
+                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#ec1313] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]"
+              >
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("updateBtn").addEventListener("click", () => {
+        const hospitalInfo = {
+          name: document.getElementById("hospitalName").value,
+          address: document.getElementById("address").value,
+          contact: document.getElementById("contact").value,
+          email: document.getElementById("email").value,
+        };
+
+        const bloodGroups = [];
+        const rows = document.querySelectorAll("#bloodTable tbody tr");
+        rows.forEach((row) => {
+          bloodGroups.push({
+            group: row.cells[0].innerText,
+            needed: row.querySelector(".unitNeeded").value,
+            available: row.querySelector(".unitAvailable").value,
+          });
+        });
+
+        localStorage.setItem("hospitalInfo", JSON.stringify(hospitalInfo));
+        localStorage.setItem("bloodGroups", JSON.stringify(bloodGroups));
+
+        // Redirect to stock-info page
+        window.location.href = "stock-info.html";
+      });
+    </script>
+  </body>
+</html>

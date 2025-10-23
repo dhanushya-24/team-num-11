@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Maps with Autocomplete</title>
+    <meta charset="utf-8" />
+    <style>
+      /* Make sure the map container has a height */
+      #map {
+        height: 400px;
+        width: 100%;
+      }
+
+<<<<<<< HEAD
+      /* Basic styling for input */
+      #autocomplete {
+        width: 300px;
+        height: 40px;
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+    </style>
+=======
+    <title>Life Link</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+>>>>>>> d8995167a3756c24c712d5ecb7a55268cc292355
+
+    <script>
+      function initMap() {
+        // Create the map centered at a default location
+        const map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: 40.7128, lng: -74.006 }, // New York City coords
+          zoom: 13,
+        });
+
+        // Setup autocomplete on input
+        const input = document.getElementById("autocomplete");
+        const autocomplete = new google.maps.places.Autocomplete(input);
+
+        autocomplete.bindTo("bounds", map);
+
+        // Create a marker to show the selected place
+        const marker = new google.maps.Marker({
+          map: map,
+          anchorPoint: new google.maps.Point(0, -29),
+        });
+
+        autocomplete.addListener("place_changed", () => {
+          marker.setVisible(false);
+          const place = autocomplete.getPlace();
+
+          if (!place.geometry) {
+            window.alert("No details available for input: '" + place.name + "'");
+            return;
+          }
+
+          // If the place has a geometry, then present it on the map
+          if (place.geometry.viewport) {
+            map.fitBounds(place.geometry.viewport);
+          } else {
+            map.setCenter(place.geometry.location);
+            map.setZoom(17);
+          }
+
+          marker.setPosition(place.geometry.location);
+          marker.setVisible(true);
+        });
+      }
+    </script>
+
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCIHaBEwx5Jq0esZQExrQS-ndRhiuFx-dQ&libraries=places&callback=initMap"
+      async
+      defer
+    ></script>
+  </head>
+  <body>
+    <input id="autocomplete" placeholder="Enter location" type="text" />
+    <div id="map"></div>
+  </body>
+</html>

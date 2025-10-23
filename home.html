@@ -1,0 +1,369 @@
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&amp;family=Lexend%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"
+    />
+
+    <title>Life Link</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body>
+    <div
+      class="relative flex size-full min-h-screen flex-col bg-[#fcf8f8] group/design-root overflow-x-hidden"
+      style="font-family: Lexend, 'Noto Sans', sans-serif"
+    >
+    <body>
+<script>
+(function() {
+  function setGoogleTranslateCookie(lang) {
+    const d = new Date();
+    d.setTime(d.getTime() + 365*24*60*60*1000); // 1 year
+    const expires = "expires=" + d.toUTCString();
+    document.cookie = "googtrans=/en/" + lang + ";path=/;" + expires + ";SameSite=Lax";
+    document.cookie = "googtrans=/en/" + lang + ";path=/translate_a/element;" + expires + ";SameSite=Lax";
+  }
+
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? match[2] : null;
+  }
+
+  const savedLang = getCookie('selectedLang');
+  if(savedLang){
+    setGoogleTranslateCookie(savedLang);
+  }
+})();
+</script>
+
+      <div class="layout-container flex h-full grow flex-col">
+        <header
+          class="flex items-center justify-between relative whitespace-nowrap border-b border-solid border-b-[#f3e7e7] px-10 py-3"
+        >
+          <div class="flex items-center gap-4 text-[#1b0d0d]">
+            <div class="size-4">
+              <svg
+                viewBox="0 0 48 48"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
+            </div>
+            <h2
+              class="text-[#1b0d0d] text-lg font-bold leading-tight tracking-[-0.015em]"
+            >
+              Life Link
+            </h2>
+          </div>
+          <div class="flex flex-1 justify-end gap-8">
+            <div class="flex items-center gap-9">
+              <nav>
+                <a href="register.html">Register</a>
+              </nav>
+
+              <a href="map.html">Map</a>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-[#f3e7e7] text-[#1b0d0d] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5"
+              >
+                <div
+                  class="text-[#1b0d0d]"
+                  data-icon="Bell"
+                  data-size="20px"
+                  data-weight="regular"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20px"
+                    height="20px"
+                    fill="currentColor"
+                    viewBox="0 0 256 256"
+                  >
+                    <path
+                      d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"
+                    ></path>
+                  </svg>
+                </div>
+              </button>
+
+              <!-- Google Translate floating dropdown -->
+              <div
+                id="google-translate-wrapper"
+                class="fixed z-50"
+                style="top: 90px; right: 15px"
+              >
+                <div id="google_translate_element"></div>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div class="px-40 flex flex-1 justify-center py-5">
+          <div
+            class="layout-content-container flex flex-col max-w-[960px] flex-1"
+          >
+            <div class="@container">
+              <div class="@[480px]:p-4">
+                <div
+                  class="flex min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat @[480px]:gap-8 @[480px]:rounded-lg items-center justify-center p-4"
+                  style="
+                    background-image: linear-gradient(
+                        rgba(0, 0, 0, 0.1) 0%,
+                        rgba(0, 0, 0, 0.4) 100%
+                      ),
+                      url('https://lh3.googleusercontent.com/aida-public/AB6AXuAwahAMRRRb55EM_Y4XFV8pV6PRg7x8WXQ_AJLCyYb6-PiZjfyDXqNTE-m3Jgp7behVswcBzs2h9VYOFpXLCULr-ezQVlCpQJnuVSRW3MJRw8G9s9z4bLQ-h-56wqNH_4ObGRQA68m-wrFaQu93f37ICctPj82TvkfWf25yaCPy4KVeYjXwT_3mk82qeEWDI9cH0wyJXy9wkMk_AOXC7ZaGgH2HHgBewKIReAKinclwnzpBTzwYc09AgVJF537wAJwJvop3BGn7G4Jf');
+                  "
+                >
+                  <div class="flex flex-col gap-2 text-center">
+                    <h1
+                      class="text-white text-4xl font-black leading-tight tracking-[-0.033em] @[480px]:text-5xl @[480px]:font-black @[480px]:leading-tight @[480px]:tracking-[-0.033em]"
+                    >
+                      Find Blood Banks Near You
+                    </h1>
+                    <h2
+                      class="text-white text-sm font-normal leading-normal @[480px]:text-base @[480px]:font-normal @[480px]:leading-normal"
+                    >
+                      Search for blood banks by location or blood type. Help
+                      save lives by donating blood.
+                    </h2>
+                  </div>
+                  <label
+                    class="flex flex-col min-w-40 h-14 w-full max-w-[480px] @[480px]:h-16"
+                  >
+                    <div
+                      class="flex w-full flex-1 items-stretch rounded-lg h-full"
+                    >
+                      <div
+                        class="text-[#9a4c4c] flex border border-[#e7cfcf] bg-[#fcf8f8] items-center justify-center pl-[15px] rounded-l-lg border-r-0"
+                        data-icon="MagnifyingGlass"
+                        data-size="20px"
+                        data-weight="regular"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20px"
+                          height="20px"
+                          fill="currentColor"
+                          viewBox="0 0 256 256"
+                        >
+                          <path
+                            d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
+                          ></path>
+                        </svg>
+                      </div>
+                      <input
+                        placeholder="Enter location or blood type"
+                        class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0d0d] focus:outline-0 focus:ring-0 border border-[#e7cfcf] bg-[#fcf8f8] focus:border-[#e7cfcf] h-full placeholder:text-[#9a4c4c] px-[15px] rounded-r-none border-r-0 pr-2 rounded-l-none border-l-0 pl-2 text-sm font-normal leading-normal @[480px]:text-base @[480px]:font-normal @[480px]:leading-normal"
+                        value=""
+                      />
+                      <div
+                        class="flex items-center justify-center rounded-r-lg border-l-0 border border-[#e7cfcf] bg-[#fcf8f8] pr-[7px]"
+                      >
+                        <button
+                          class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 @[480px]:h-12 @[480px]:px-5 bg-[#ec1313] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em] @[480px]:text-base @[480px]:font-bold @[480px]:leading-normal @[480px]:tracking-[0.015em]"
+                        >
+                          <nav>
+                            <a href="map.html">Search</a>
+                          </nav>
+                        </button>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <h2
+              class="text-[#1b0d0d] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5"
+            >
+              Become a Donor
+            </h2>
+            <p
+              class="text-[#1b0d0d] text-base font-normal leading-normal pb-3 pt-1 px-4 text-center"
+            >
+              Register as a blood donor and track your donations. Your
+              contribution can make a difference.
+            </p>
+            <div class="flex px-4 py-3 justify-center">
+              <button
+                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#ec1313] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]"
+              >
+                <nav>
+                  <a href="donor.html">Register as a Donor</a>
+                </nav>
+              </button>
+            </div>
+            <h2
+              class="text-[#1b0d0d] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5"
+            >
+              Latest News
+            </h2>
+            <div class="p-4">
+              <div class="flex items-stretch justify-between gap-4 rounded-lg">
+                <div class="flex flex-col gap-1 flex-[2_2_0px]">
+                  <p class="text-[#9a4c4c] text-sm font-normal leading-normal">
+                    News
+                  </p>
+                  <p class="text-[#1b0d0d] text-base font-bold leading-tight">
+                    Community Blood Drive Exceeds Expectations
+                  </p>
+                  <p class="text-[#9a4c4c] text-sm font-normal leading-normal">
+                    Our recent blood donation drive collected over 500 units of
+                    blood, thanks to the generous support of our community.
+                  </p>
+                </div>
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
+                  style="
+                    background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAaHAwsRasT8OhcqO5o4LdK6qzqdirNsw9U7WYwl918K-JPb0d78BsphPxujjDLTCUitVA6So3LeQbpZB4B58ah_bmLuVaYJCWAuXR_BhZvEFWUzaQ1qIQh6TyzML56VCp16asnZSvsk7SnA-X3f1giJVfwB4T6ABD_hyPszpuloviQf_cXaI7SY2Vq07HrzmPVoymGTxhnarIycrMj3qwF3gMIE4kKLWg9lkCUwGlOHndDHkyXkIOj7LCJaI9RcxJnPmfOCk4kwucA');
+                  "
+                ></div>
+              </div>
+            </div>
+            <div class="p-4">
+              <div class="flex items-stretch justify-between gap-4 rounded-lg">
+                <div class="flex flex-col gap-1 flex-[2_2_0px]">
+                  <p class="text-[#9a4c4c] text-sm font-normal leading-normal">
+                    News
+                  </p>
+                  <p class="text-[#1b0d0d] text-base font-bold leading-tight">
+                    New Blood Bank Opens in City Center
+                  </p>
+                  <p class="text-[#9a4c4c] text-sm font-normal leading-normal">
+                    A new blood bank has opened in the city center, making it
+                    easier for donors to contribute and for patients to receive
+                    blood.
+                  </p>
+                </div>
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
+                  style="
+                    background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBu5SA51zhWFLLw0-LPiV5xBQfADQc7uq-thcyq1kEer29dCV7r5lTb0b7PdkFO0R0YvOsSwQioJKdGveZeeMZ0bnABtzmaZKffoMMskIhd104BKYJxGGsM6f_mlD6DqZrsRAhUaD3QXX5Oh36tWnb0Kq8Gp4PHY0k1B11x4XBt4g3STkV9k_g4D0QCvFC4ls_-wI8CXSg_324vSlJbdClRBDKRbdwkeKR1ncnhKISQ-_oOgp55nJfUne9X_R2yE2Xy3gbV5QHKpL8y');
+                  "
+                ></div>
+              </div>
+            </div>
+            <div class="p-4">
+              <div class="flex items-stretch justify-between gap-4 rounded-lg">
+                <div class="flex flex-col gap-1 flex-[2_2_0px]">
+                  <p class="text-[#9a4c4c] text-sm font-normal leading-normal">
+                    News
+                  </p>
+                  <p class="text-[#1b0d0d] text-base font-bold leading-tight">
+                    Blood Donation Awareness Campaign
+                  </p>
+                  <p class="text-[#9a4c4c] text-sm font-normal leading-normal">
+                    Join our blood donation awareness campaign to learn more
+                    about the importance of blood donation and how you can help.
+                  </p>
+                </div>
+                <div
+                  class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg flex-1"
+                  style="
+                    background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCOaOCzmm-4ppL0zOyLyUEES4iYBHhcWhMwo_1F604aMOba4uZOdkp9dSGn4Qx5kH94n9mL8VSegAZyuuhSmpg72ctIB7iXd1LJx0mo0xFq-t6bHzY55VED4ISCobsXdz9a0XHBkKKRVH7uVzZYSObNzSa5WDWlPhC6xJztGf9o-PZZSADb2m7thCRnhupDcb8WAcOxVQL2MHB9x3MrG2G6NqIYKpC8fg8dxz-94NeIdGYgyS26vCZirqGx6wUuoVX8QGSq_IK6_fxQ');
+                  "
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="flex justify-center">
+          <div class="flex max-w-[960px] flex-1 flex-col">
+            <footer
+              class="flex flex-col gap-6 px-5 py-10 text-center @container"
+            >
+              <div
+                class="flex flex-wrap items-center justify-center gap-6 @[480px]:flex-row @[480px]:justify-around"
+              >
+                <a
+                  class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
+                  href="#"
+                  ><nav>
+                    <a href="about.html">About Us</a>
+                  </nav></a
+                >
+
+                <a
+                  class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
+                  href="#"
+                >
+                  <a href="contact.html">Contact</a>
+                </a>
+                <a
+                  class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
+                  href="#"
+                >
+                  <a href="terms.html">Terms And Services</a></a
+                >
+              </div>
+              <p class="text-[#9a4c4c] text-base font-normal leading-normal">
+                © 2025 LifeLink. All rights reserved.
+              </p>
+            </footer>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <!-- Google Translate -->
+<div id="google_translate_element" style="position: fixed; top: 65px; right: 90px; z-index: 1000;"></div>
+<script>
+  function setCookie(name, value, days) {
+    const d = new Date();
+    d.setTime(d.getTime() + (days*24*60*60*1000));
+    document.cookie = name + "=" + value + ";expires=" + d.toUTCString() + ";path=/";
+  }
+
+  function getCookie(name) {
+    const value = "; " + document.cookie;
+    const parts = value.split("; " + name + "=");
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
+
+  // Load saved language or default to English
+  const savedLang = getCookie("googtrans") || "/en/en";
+  setCookie("googtrans", savedLang, 365);
+
+  // Initialize Google Translate after cookie setup
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'en',
+      includedLanguages: 'en,ta,hi,ml,te,kn,bn,gu,mr,pa,ur,or,as,ne,sd,si,sa,mai,doi,ks',
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+    }, 'google_translate_element');
+  }
+</script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<script>
+  // Observe for language change and store selected language
+  document.addEventListener('click', function() {
+    const iframe = document.querySelector('.goog-te-menu-frame');
+    if (iframe) {
+      iframe.addEventListener('load', function() {
+        const langMenu = iframe.contentDocument.querySelectorAll('.goog-te-menu2-item');
+        langMenu.forEach(item => {
+          item.addEventListener('click', function() {
+            const lang = item.querySelector('span.text').innerText.toLowerCase();
+            const langMap = {
+              tamil: 'ta', hindi: 'hi', malayalam: 'ml', telugu: 'te', kannada: 'kn',
+              bengali: 'bn', gujarati: 'gu', marathi: 'mr', punjabi: 'pa', urdu: 'ur',
+              odia: 'or', assamese: 'as', nepali: 'ne', sindhi: 'sd', sinhala: 'si',
+              sanskrit: 'sa', maithili: 'mai', dogri: 'doi', kashmiri: 'ks', english: 'en'
+            };
+            const selectedLang = langMap[lang] || 'en';
+            setCookie("googtrans", `/en/${selectedLang}`, 365);
+          });
+        });
+      });
+    }
+  });
+</script>
+  </body>
+</html>

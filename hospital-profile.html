@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hospital Profile</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body class="bg-[#fcf8f8] font-sans">
+    <div class="flex justify-center py-10">
+      <div class="w-full max-w-xl bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-2xl font-bold text-[#1b0e0e] mb-6 text-center">
+          Hospital Profile
+        </h2>
+
+        <div class="flex justify-center gap-4 mb-6">
+          <button
+            id="stockBtn"
+            class="bg-[#ec1313] text-white font-bold py-2 px-4 rounded-lg"
+          >
+            <nav>
+              <a href="stock.html">Stock Update</a>
+            </nav>
+          </button>
+
+          <button
+            id="requestBtn"
+            class="bg-[#ec1313] text-white font-bold py-2 px-4 rounded-lg"
+          >
+            <nav>
+              <a href="request.html">Request</a>
+            </nav>
+          </button>
+        </div>
+
+        <div id="profileDetails" class="space-y-3">
+          <!-- Details will appear here -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      async function loadProfile() {
+        const stored = JSON.parse(localStorage.getItem("loggedInHospital"));
+        if (!stored || !stored.id) {
+          document.getElementById("profileDetails").innerText = "Not logged in";
+          return;
+        }
+        try {
+          const res = await fetch(
+            `http://localhost:3000/api/hospital/${stored.id}`
+          );
+          const j = await res.json();
+          if (!res.ok) throw new Error(j.error || "Failed");
+          const hospital = j.hospital;
+          document.getElementById("profileDetails").innerHTML = `
+        <p><strong>Hospital Name:</strong> ${hospital.name}</p>
+        <p><strong>Address:</strong> ${hospital.address}</p>
+        <p><strong>Contact Person:</strong> ${hospital.contactPerson}</p>
+        <p><strong>Contact Number:</strong> ${hospital.contactNumber}</p>
+        <p><strong>Email:</strong> ${hospital.email}</p>
+        <p><strong>Location:</strong> ${
+          hospital.latitude
+            ? hospital.latitude + ", " + hospital.longitude
+            : "Not provided"
+        }</p>
+      `;
+        } catch (err) {
+          document.getElementById("profileDetails").innerText =
+            "Error loading profile: " + err.message;
+        }
+      }
+
+      loadProfile();
+    </script>
+  </body>
+</html>

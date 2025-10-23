@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Life Link - User Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .calendar-day {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .calendar-day:hover {
+        background-color: #f3f4f6;
+      }
+      .selected-day {
+        background-color: #ec1313 !important;
+        color: white;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body class="bg-[#fcf8f8] min-h-screen flex items-center justify-center">
+    <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-3xl">
+      <!-- Header with Edit Profile -->
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-[#1b0d0d]">User Profile</h2>
+        <button
+          onclick="editProfile()"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          Edit Profile
+        </button>
+      </div>
+
+      <!-- Profile Details -->
+      <div
+        id="profileDetails"
+        class="grid grid-cols-2 gap-4 text-gray-700 text-lg mb-6"
+      >
+        <!-- Details will load from localStorage -->
+      </div>
+
+      <!-- Donation History -->
+      <div class="bg-gray-100 p-4 rounded-lg mb-6">
+        <h3 class="text-xl font-semibold mb-3">Donation History</h3>
+        <ul id="donationHistory" class="list-disc ml-6 text-gray-700 space-y-1">
+          <!-- Donation records will load here -->
+        </ul>
+      </div>
+
+      <!-- Location Status -->
+      <div
+        class="flex items-center justify-between bg-gray-100 p-4 rounded-lg mb-6"
+      >
+        <span id="locationStatus" class="font-medium text-gray-800"
+          >Location: Checking...</span
+        >
+        <button
+          onclick="getLocation()"
+          class="px-4 py-2 bg-[#ec1313] text-white rounded-lg hover:bg-[#c40f0f] transition"
+        >
+          Enable Location
+        </button>
+      </div>
+
+      <!-- Calendar -->
+      <div class="bg-gray-100 p-4 rounded-lg mb-6">
+        <div class="flex justify-between items-center mb-4">
+          <button
+            onclick="prevMonth()"
+            class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+          >
+            ←
+          </button>
+          <h3 id="calendarTitle" class="text-xl font-semibold"></h3>
+          <button
+            onclick="nextMonth()"
+            class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+          >
+            →
+          </button>
+        </div>
+        <div class="grid grid-cols-7 gap-2 font-semibold text-gray-600 mb-2">
+          <div>Sun</div>
+          <div>Mon</div>
+          <div>Tue</div>
+          <div>Wed</div>
+          <div>Thu</div>
+          <div>Fri</div>
+          <div>Sat</div>
+        </div>
+        <div id="calendar" class="grid grid-cols-7 gap-2"></div>
+      </div>
+
+      <!-- Logout -->
+      <div class="flex justify-center">
+        <button
+          onclick="logout()"
+          class="px-6 py-2 bg-[#ec1313] text-white rounded-lg hover:bg-[#c40f0f] transition"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const logged = JSON.parse(localStorage.getItem("loggedInUser"));
+      if (!logged) {
+        alert("No user data found. Please register or login first.");
+        window.location.href = "login.html";
+      } else {
+        fetch(`http://localhost:3001/api/donors/${logged.id}`)
+          .then((r) => r.json())
+          .then((userData) => {
+            if (userData.error) throw new Error(userData.error);
+            const profileDiv = document.getElementById("profileDetails");
+            profileDiv.innerHTML = `
+        <p><strong>Full Name:</strong> ${userData.name}</p>
+        <p><strong>DOB:</strong> ${userData.dob}</p>
+        <p><strong>Gender:</strong> ${userData.gender}</p>
+        <p><strong>Blood Type:</strong> ${userData.bloodType}</p>
+        <p><strong>Contact:</strong> ${userData.contact}</p>
+        <p><strong>Email:</strong> ${userData.email}</p>
+        <p><strong>Address:</strong> ${userData.address}</p>
+      `;
+          })
+          .catch((err) => {
+            alert("Error loading profile: " + err.message);
+            window.location.href = "login.html";
+          });
+      }
+
+      // Sample Donation History (can be dynamic later)
+      const donations = [
+        { date: "2025-01-15", location: "City Hospital" },
+        { date: "2025-04-20", location: "Red Cross Center" },
+        { date: "2025-07-10", location: "Community Health Camp" },
+      ];
+      const donationList = document.getElementById("donationHistory");
+      donations.forEach((d) => {
+        const li = document.createElement("li");
+        li.textContent = `${d.date} – ${d.location}`;
+        donationList.appendChild(li);
+      });
+
+      // Calendar with Month Switch
+      let currentMonth = new Date().getMonth();
+      let currentYear = new Date().getFullYear();
+
+      function generateCalendar(month, year) {
+        const calendar = document.getElementById("calendar");
+        const calendarTitle = document.getElementById("calendarTitle");
+        calendar.innerHTML = "";
+
+        const months = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+        calendarTitle.textContent = `${months[month]} ${year}`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Empty slots before first day
+        for (let i = 0; i < firstDay; i++) {
+          calendar.innerHTML += `<div></div>`;
+        }
+
+        // Days
+        for (let day = 1; day <= daysInMonth; day++) {
+          const div = document.createElement("div");
+          div.className = "calendar-day";
+          div.innerText = day;
+
+          div.onclick = function () {
+            document
+              .querySelectorAll(".calendar-day")
+              .forEach((d) => d.classList.remove("selected-day"));
+            div.classList.add("selected-day");
+          };
+
+          calendar.appendChild(div);
+        }
+      }
+
+      function prevMonth() {
+        currentMonth--;
+        if (currentMonth < 0) {
+          currentMonth = 11;
+          currentYear--;
+        }
+        generateCalendar(currentMonth, currentYear);
+      }
+
+      function nextMonth() {
+        currentMonth++;
+        if (currentMonth > 11) {
+          currentMonth = 0;
+          currentYear++;
+        }
+        generateCalendar(currentMonth, currentYear);
+      }
+
+      generateCalendar(currentMonth, currentYear);
+
+      // Location Status
+      function getLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              document.getElementById(
+                "locationStatus"
+              ).innerText = `Location: Enabled (${pos.coords.latitude.toFixed(
+                2
+              )}, ${pos.coords.longitude.toFixed(2)})`;
+            },
+            () => {
+              document.getElementById("locationStatus").innerText =
+                "Location: Permission Denied";
+            }
+          );
+        } else {
+          document.getElementById("locationStatus").innerText =
+            "Location: Not Supported";
+        }
+      }
+
+      // Edit Profile
+      function editProfile() {
+        window.location.href = "donor.html"; // redirect to registration for editing
+      }
+
+      // Logout
+      function logout() {
+        localStorage.removeItem("loggedIn");
+        window.location.href = "login.html";
+      }
+    </script>
+  </body>
+</html>
