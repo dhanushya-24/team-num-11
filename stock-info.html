@@ -108,35 +108,55 @@
     </div>
 
     <script>
-      const hospitalInfo = JSON.parse(localStorage.getItem("hospitalInfo"));
-      const bloodGroups = JSON.parse(localStorage.getItem("bloodGroups"));
+      const hospitalName = localStorage.getItem("selectedHospital") || "";
 
-      if (hospitalInfo) {
-        document.getElementById(
-          "hospitalNameDisplay"
-        ).innerText = `Hospital Name: ${hospitalInfo.name}`;
-        document.getElementById(
-          "addressDisplay"
-        ).innerText = `Address: ${hospitalInfo.address}`;
-        document.getElementById(
-          "contactDisplay"
-        ).innerText = `Contact: ${hospitalInfo.contact}`;
-        document.getElementById(
-          "emailDisplay"
-        ).innerText = `Email: ${hospitalInfo.email}`;
-      }
+      if (!hospitalName) {
+        document.getElementById("hospitalNameDisplay").innerText =
+          "No hospital selected.";
+      } else {
+        fetch(
+          `http://localhost:5002/getStock/${encodeURIComponent(hospitalName)}`
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            const { hospital, bloodGroups } = data;
+            if (!hospital) {
+              document.getElementById("hospitalNameDisplay").innerText =
+                "No data found for: " + hospitalName;
+              return;
+            }
 
-      const tbody = document.querySelector("#bloodTableDisplay tbody");
-      if (bloodGroups) {
-        bloodGroups.forEach((bg) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td class="px-4 py-2">${bg.group}</td>
-            <td class="px-4 py-2">${bg.needed || 0}</td>
-            <td class="px-4 py-2">${bg.available || 0}</td>
+            document.getElementById(
+              "hospitalNameDisplay"
+            ).innerText = `Hospital Name: ${hospital.name}`;
+            document.getElementById(
+              "addressDisplay"
+            ).innerText = `Address: ${hospital.address}`;
+            document.getElementById(
+              "contactDisplay"
+            ).innerText = `Contact: ${hospital.contact}`;
+            document.getElementById(
+              "emailDisplay"
+            ).innerText = `Email: ${hospital.email}`;
+
+            const tbody = document.querySelector("#bloodTableDisplay tbody");
+            tbody.innerHTML = "";
+            bloodGroups.forEach((bg) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+            <td class="px-4 py-2">${bg.blood_group}</td>
+            <td class="px-4 py-2">${bg.units_needed}</td>
+            <td class="px-4 py-2">${bg.units_available}</td>
           `;
-          tbody.appendChild(tr);
-        });
+              tbody.appendChild(tr);
+            });
+          })
+          .catch((err) => {
+            console.error("Fetch error:", err);
+            alert(
+              "Error loading stock data. Make sure stock_server.js is running at http://localhost:5002"
+            );
+          });
       }
     </script>
   </body>

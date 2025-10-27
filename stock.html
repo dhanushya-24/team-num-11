@@ -220,11 +220,27 @@
           });
         });
 
-        localStorage.setItem("hospitalInfo", JSON.stringify(hospitalInfo));
-        localStorage.setItem("bloodGroups", JSON.stringify(bloodGroups));
-
-        // Redirect to stock-info page
-        window.location.href = "stock-info.html";
+        fetch("http://localhost:5002/saveStock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ hospitalInfo, bloodGroups }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              // store hospital name so stock-info can ask for it
+              localStorage.setItem("selectedHospital", hospitalInfo.name);
+              window.location.href = "stock-info.html";
+            } else {
+              alert("Error saving data: " + (data.error || "unknown"));
+            }
+          })
+          .catch((err) => {
+            console.error("Network error:", err);
+            alert(
+              "Failed to connect to stock server at http://localhost:5002. Start the server and try again."
+            );
+          });
       });
     </script>
   </body>
