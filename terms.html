@@ -12,6 +12,43 @@
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Google Translate -->
+    <div
+      id="google_translate_element"
+      style="position: fixed; top: 65px; right: 90px; z-index: 1000"
+    ></div>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script>
+      // Cookie management functions
+      function setCookie(name, value, days) {
+        const d = new Date();
+        d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+        const expires = "expires=" + d.toUTCString();
+        document.cookie = name + "=" + value + ";" + expires + ";path=/";
+      }
+
+      function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(";");
+        for (let i = 0; i < ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) === " ") c = c.substring(1, c.length);
+          if (c.indexOf(nameEQ) === 0)
+            return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+      }
+
+      // Ensure default language is English
+      function ensureEnglishDefault() {
+        const currentLang = getCookie("googtrans");
+        if (!currentLang || currentLang !== "/en/en") {
+          setCookie("googtrans", "/en/en", 365);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", ensureEnglishDefault);
+    </script>
   </head>
   <body>
     <div
@@ -251,5 +288,56 @@
         </footer>
       </div>
     </div>
+    <!-- Google Translate -->
+    <div
+      id="google_translate_element"
+      style="position: fixed; top: 65px; right: 90px; z-index: 1000"
+    ></div>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <script>
+      function googleTranslateElementInit() {
+        ensureEnglishDefault();
+
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: "en",
+            includedLanguages:
+              "en,ta,hi,ml,te,kn,bn,gu,mr,pa,ur,or,as,ne,sd,si,sa,mai,doi,ks",
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+          },
+          "google_translate_element"
+        );
+
+        // Apply saved language and monitor changes
+        setTimeout(applySavedLanguage, 1500);
+        monitorLanguageChanges();
+      }
+
+      function applySavedLanguage() {
+        const savedLang = getCookie("googtrans");
+        if (savedLang && savedLang !== "/en/en") {
+          const langCode = savedLang.split("/").pop();
+          setTimeout(() => {
+            const select = document.querySelector(".goog-te-combo");
+            if (select) {
+              select.value = langCode;
+              select.dispatchEvent(new Event("change"));
+            }
+          }, 1000);
+        }
+      }
+
+      function monitorLanguageChanges() {
+        setInterval(() => {
+          const select = document.querySelector(".goog-te-combo");
+          if (select && !select.hasAttribute("data-listener-attached")) {
+            select.setAttribute("data-listener-attached", "true");
+            select.addEventListener("change", function () {
+              setCookie("googtrans", `/en/${this.value}`, 365);
+            });
+          }
+        }, 1000);
+      }
+    </script>
   </body>
 </html>

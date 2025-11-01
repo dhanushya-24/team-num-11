@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
     <link
@@ -12,35 +13,119 @@
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Language Management Script -->
+    <script>
+      // Enhanced Cookie management functions
+      function setCookie(name, value, days) {
+        const d = new Date();
+        d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+        const expires = "expires=" + d.toUTCString();
+        document.cookie =
+          name +
+          "=" +
+          encodeURIComponent(value) +
+          ";" +
+          expires +
+          ";path=/;SameSite=Lax";
+      }
+
+      function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(";");
+        for (let i = 0; i < ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) === " ") c = c.substring(1, c.length);
+          if (c.indexOf(nameEQ) === 0)
+            return decodeURIComponent(c.substring(nameEQ.length, c.length));
+        }
+        return null;
+      }
+
+      // Get current language from cookie
+      function getCurrentLanguage() {
+        const googtrans = getCookie("googtrans");
+        if (googtrans && googtrans.startsWith("/en/")) {
+          return googtrans.split("/")[2] || "en";
+        }
+        return "en";
+      }
+
+      // Ensure default language is set
+      function ensureLanguageCookie() {
+        const currentLang = getCurrentLanguage();
+        if (!getCookie("googtrans")) {
+          setCookie("googtrans", "/en/en", 365);
+        }
+        return currentLang;
+      }
+
+      // Apply language to Google Translate
+      function applyLanguageToGoogleTranslate(langCode) {
+        if (!window.google || !window.google.translate) return false;
+
+        const select = document.querySelector(".goog-te-combo");
+        if (select && select.value !== langCode) {
+          select.value = langCode;
+          select.dispatchEvent(new Event("change"));
+          return true;
+        }
+        return false;
+      }
+
+      // Monitor for language changes
+      function setupLanguageChangeMonitor() {
+        // Monitor dropdown changes
+        setInterval(() => {
+          const select = document.querySelector(".goog-te-combo");
+          if (select && !select.hasAttribute("data-lang-listener")) {
+            select.setAttribute("data-lang-listener", "true");
+            select.addEventListener("change", function () {
+              const newLang = this.value;
+              setCookie("googtrans", `/en/${newLang}`, 365);
+              console.log("Language changed to:", newLang);
+            });
+          }
+        }, 1000);
+
+        // Monitor iframe clicks
+        document.addEventListener("click", function () {
+          const iframe = document.querySelector(".goog-te-menu-frame");
+          if (iframe && iframe.contentDocument) {
+            const items = iframe.contentDocument.querySelectorAll(
+              ".goog-te-menu2-item"
+            );
+            items.forEach((item) => {
+              if (!item.hasAttribute("data-lang-listener")) {
+                item.setAttribute("data-lang-listener", "true");
+                item.addEventListener("click", function () {
+                  setTimeout(() => {
+                    const select = document.querySelector(".goog-te-combo");
+                    if (select) {
+                      const newLang = select.value;
+                      setCookie("googtrans", `/en/${newLang}`, 365);
+                      console.log("Language changed via iframe to:", newLang);
+                    }
+                  }, 100);
+                });
+              }
+            });
+          }
+        });
+      }
+
+      // Initialize when DOM is ready
+      document.addEventListener("DOMContentLoaded", function () {
+        ensureLanguageCookie();
+        setupLanguageChangeMonitor();
+      });
+    </script>
   </head>
   <body>
     <div
       class="relative flex size-full min-h-screen flex-col bg-[#fcf8f8] group/design-root overflow-x-hidden"
       style="font-family: Lexend, 'Noto Sans', sans-serif"
     >
-    <body>
-<script>
-(function() {
-  function setGoogleTranslateCookie(lang) {
-    const d = new Date();
-    d.setTime(d.getTime() + 365*24*60*60*1000); // 1 year
-    const expires = "expires=" + d.toUTCString();
-    document.cookie = "googtrans=/en/" + lang + ";path=/;" + expires + ";SameSite=Lax";
-    document.cookie = "googtrans=/en/" + lang + ";path=/translate_a/element;" + expires + ";SameSite=Lax";
-  }
-
-  function getCookie(name) {
-    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-    return match ? match[2] : null;
-  }
-
-  const savedLang = getCookie('selectedLang');
-  if(savedLang){
-    setGoogleTranslateCookie(savedLang);
-  }
-})();
-</script>
-
       <div class="layout-container flex h-full grow flex-col">
         <header
           class="flex items-center justify-between relative whitespace-nowrap border-b border-solid border-b-[#f3e7e7] px-10 py-3"
@@ -95,15 +180,6 @@
                   </svg>
                 </div>
               </button>
-
-              <!-- Google Translate floating dropdown -->
-              <div
-                id="google-translate-wrapper"
-                class="fixed z-50"
-                style="top: 90px; right: 15px"
-              >
-                <div id="google_translate_element"></div>
-              </div>
             </div>
           </div>
         </header>
@@ -312,58 +388,47 @@
         </footer>
       </div>
     </div>
+
     <!-- Google Translate -->
-<div id="google_translate_element" style="position: fixed; top: 65px; right: 90px; z-index: 1000;"></div>
-<script>
-  function setCookie(name, value, days) {
-    const d = new Date();
-    d.setTime(d.getTime() + (days*24*60*60*1000));
-    document.cookie = name + "=" + value + ";expires=" + d.toUTCString() + ";path=/";
-  }
+    <div
+      id="google_translate_element"
+      style="position: fixed; top: 65px; right: 90px; z-index: 1000"
+    ></div>
 
-  function getCookie(name) {
-    const value = "; " + document.cookie;
-    const parts = value.split("; " + name + "=");
-    if (parts.length === 2) return parts.pop().split(";").shift();
-  }
+    <script>
+      function googleTranslateElementInit() {
+        // Ensure language cookie is set before initializing
+        ensureLanguageCookie();
 
-  // Load saved language or default to English
-  const savedLang = getCookie("googtrans") || "/en/en";
-  setCookie("googtrans", savedLang, 365);
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: "en",
+            includedLanguages:
+              "en,ta,hi,ml,te,kn,bn,gu,mr,pa,ur,or,as,ne,sd,si,sa,mai,doi,ks",
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+          },
+          "google_translate_element"
+        );
 
-  // Initialize Google Translate after cookie setup
-  function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-      pageLanguage: 'en',
-      includedLanguages: 'en,ta,hi,ml,te,kn,bn,gu,mr,pa,ur,or,as,ne,sd,si,sa,mai,doi,ks',
-      layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-    }, 'google_translate_element');
-  }
-</script>
-<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-<script>
-  // Observe for language change and store selected language
-  document.addEventListener('click', function() {
-    const iframe = document.querySelector('.goog-te-menu-frame');
-    if (iframe) {
-      iframe.addEventListener('load', function() {
-        const langMenu = iframe.contentDocument.querySelectorAll('.goog-te-menu2-item');
-        langMenu.forEach(item => {
-          item.addEventListener('click', function() {
-            const lang = item.querySelector('span.text').innerText.toLowerCase();
-            const langMap = {
-              tamil: 'ta', hindi: 'hi', malayalam: 'ml', telugu: 'te', kannada: 'kn',
-              bengali: 'bn', gujarati: 'gu', marathi: 'mr', punjabi: 'pa', urdu: 'ur',
-              odia: 'or', assamese: 'as', nepali: 'ne', sindhi: 'sd', sinhala: 'si',
-              sanskrit: 'sa', maithili: 'mai', dogri: 'doi', kashmiri: 'ks', english: 'en'
-            };
-            const selectedLang = langMap[lang] || 'en';
-            setCookie("googtrans", `/en/${selectedLang}`, 365);
-          });
-        });
-      });
-    }
-  });
-</script>
+        // Apply saved language after a delay to ensure Google Translate is loaded
+        setTimeout(() => {
+          const currentLang = getCurrentLanguage();
+          if (currentLang !== "en") {
+            let applyAttempts = 0;
+            const applyInterval = setInterval(() => {
+              applyAttempts++;
+              if (
+                applyLanguageToGoogleTranslate(currentLang) ||
+                applyAttempts > 10
+              ) {
+                clearInterval(applyInterval);
+              }
+            }, 300);
+          }
+        }, 2000);
+      }
+    </script>
+
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </body>
 </html>
