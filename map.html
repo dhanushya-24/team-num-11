@@ -1,80 +1,591 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Google Maps with Autocomplete</title>
-    <meta charset="utf-8" />
-    <style>
-      /* Make sure the map container has a height */
-      #map {
-        height: 400px;
-        width: 100%;
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tamil Nadu Blood Bank Finder</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+
+  <!-- Locate Control CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css"
+  />
+
+  <!-- Geocoder CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"
+  />
+
+  <!-- Routing Machine CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css"
+  />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+    }
+    .header {
+      background: linear-gradient(135deg, #8b0000, #cc0000);
+      color: white;
+      padding: 15px 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header p {
+      margin: 5px 0 0 0;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    #map {
+      height: calc(100vh - 80px);
+      width: 100%;
+    }
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      text-align: center;
+    }
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      font-size: 0.9rem;
+    }
+    .legend h4 {
+      margin: 0 0 8px 0;
+      color: #333;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .legend-color {
+      width: 15px;
+      height: 15px;
+      margin-right: 8px;
+      border-radius: 50%;
+    }
+    .user-location {
+      background-color: #0066cc;
+    }
+    .blood-bank {
+      background-color: #cc0000;
+    }
+    .controls-container {
+      position: absolute;
+      top: 100px;
+      left: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .control-btn {
+      background: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .control-btn:hover {
+      background: #f0f0f0;
+    }
+    .blood-bank-popup h3 {
+      margin-top: 0;
+      color: #8b0000;
+    }
+    .blood-bank-popup p {
+      margin: 5px 0;
+    }
+    .blood-bank-popup .status {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+    .status-open {
+      background-color: #e6f7e6;
+      color: #2d8b2d;
+    }
+    .status-closed {
+      background-color: #ffe6e6;
+      color: #cc0000;
+    }
+    .district-filter {
+      position: absolute;
+      top: 100px;
+      right: 20px;
+      z-index: 1000;
+      background: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .district-filter select {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>🩸 TAMIL NADU BLOOD BANK FINDER</h1>
+      <p>Find blood banks across Tamil Nadu and get directions</p>
+    </div>
+  </div>
+  
+  <div id="map"></div>
+  
+  <div class="loading" id="loading">
+    <div>Loading Tamil Nadu map...</div>
+    <p>Please allow location access for the best experience</p>
+  </div>
+  
+  <div class="legend">
+    <h4>Map Legend</h4>
+    <div class="legend-item">
+      <div class="legend-color user-location"></div>
+      <span>Your Location</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color blood-bank"></div>
+      <span>Blood Bank</span>
+    </div>
+  </div>
+  
+  <div class="controls-container">
+    <button class="control-btn" id="findBloodBanks">
+      🔍 Find Blood Banks in Tamil Nadu
+    </button>
+    <button class="control-btn" id="clearRoute">
+      🗑️ Clear Route
+    </button>
+  </div>
+
+  <div class="district-filter">
+    <select id="districtSelect">
+      <option value="all">All Districts</option>
+      <option value="chennai">Chennai</option>
+      <option value="coimbatore">Coimbatore</option>
+      <option value="madurai">Madurai</option>
+      <option value="trichy">Trichy</option>
+      <option value="salem">Salem</option>
+      <option value="tirunelveli">Tirunelveli</option>
+      <option value="vellore">Vellore</option>
+      <option value="erode">Erode</option>
+    </select>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- Locate Control JS -->
+  <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+
+  <!-- Geocoder JS -->
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+  <!-- Routing Machine JS -->
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+
+  <script>
+    // Initialize map centered on Tamil Nadu
+    var map = L.map('map').setView([10.8505, 78.7047], 8); // Tamil Nadu coordinates
+
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Variables to store markers and routing control
+    var userMarker;
+    var currentCoords;
+    var bloodBankMarkers = [];
+    var routingControl;
+
+    // Locate control (Find current location)
+    var lc = L.control
+      .locate({
+        position: 'topleft',
+        strings: { title: 'Show my location' },
+        flyTo: true,
+        setView: 'once',
+        locateOptions: {
+          enableHighAccuracy: true,
+          maxZoom: 16
+        }
+      })
+      .addTo(map);
+
+    // Detect and store current location
+    map.on('locationfound', function (e) {
+      currentCoords = e.latlng;
+      if (userMarker) {
+        map.removeLayer(userMarker);
       }
+      userMarker = L.marker(currentCoords, {
+        icon: L.divIcon({
+          className: 'user-location-marker',
+          html: '<div style="background-color:#0066cc; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>',
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        })
+      }).addTo(map).bindPopup("📍 You are here").openPopup();
+      
+      // Hide loading message
+      document.getElementById('loading').style.display = 'none';
+    });
 
-<<<<<<< HEAD
-      /* Basic styling for input */
-      #autocomplete {
-        width: 300px;
-        height: 40px;
-        font-size: 16px;
-        margin-bottom: 10px;
-      }
-    </style>
-=======
-    <title>Life Link</title>
-    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
->>>>>>> d8995167a3756c24c712d5ecb7a55268cc292355
+    map.on('locationerror', function (e) {
+      console.error("Location error:", e.message);
+      document.getElementById('loading').innerHTML = 
+        '<div>Unable to access your location</div><p>Please enable location services or search for a location manually</p>';
+      
+      // Set default location to Chennai if location access is denied
+      currentCoords = {lat: 13.0827, lng: 80.2707};
+      userMarker = L.marker(currentCoords, {
+        icon: L.divIcon({
+          className: 'user-location-marker',
+          html: '<div style="background-color:#0066cc; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>',
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        })
+      }).addTo(map).bindPopup("📍 Default location: Chennai").openPopup();
+      
+      document.getElementById('loading').style.display = 'none';
+    });
 
-    <script>
-      function initMap() {
-        // Create the map centered at a default location
-        const map = new google.maps.Map(document.getElementById("map"), {
-          center: { lat: 40.7128, lng: -74.006 }, // New York City coords
-          zoom: 13,
-        });
+    // Add geocoder (Search bar)
+    var geocoder = L.Control.geocoder({
+      defaultMarkGeocode: false,
+      placeholder: 'Search for a location in Tamil Nadu...',
+      errorMessage: 'Location not found.'
+    })
+      .on('markgeocode', function (e) {
+        var dest = e.geocode.center;
+        L.marker(dest).addTo(map).bindPopup("📍 " + e.geocode.name).openPopup();
 
-        // Setup autocomplete on input
-        const input = document.getElementById("autocomplete");
-        const autocomplete = new google.maps.places.Autocomplete(input);
-
-        autocomplete.bindTo("bounds", map);
-
-        // Create a marker to show the selected place
-        const marker = new google.maps.Marker({
-          map: map,
-          anchorPoint: new google.maps.Point(0, -29),
-        });
-
-        autocomplete.addListener("place_changed", () => {
-          marker.setVisible(false);
-          const place = autocomplete.getPlace();
-
-          if (!place.geometry) {
-            window.alert("No details available for input: '" + place.name + "'");
-            return;
+        if (currentCoords) {
+          // Remove existing routing control if any
+          if (routingControl) {
+            map.removeControl(routingControl);
           }
+          
+          // Draw route
+          routingControl = L.Routing.control({
+            waypoints: [
+              L.latLng(currentCoords.lat, currentCoords.lng),
+              L.latLng(dest.lat, dest.lng)
+            ],
+            routeWhileDragging: false,
+            lineOptions: {
+              styles: [{color: '#cc0000', weight: 5, opacity: 0.7}]
+            },
+            showAlternatives: false,
+            altLineOptions: {
+              styles: [
+                {color: 'black', opacity: 0.15, weight: 9},
+                {color: 'white', opacity: 0.8, weight: 6},
+                {color: '#cc0000', opacity: 1, weight: 2}
+              ]
+            }
+          }).addTo(map);
+        } else {
+          alert("Your current location is not available. Please enable location services.");
+        }
 
-          // If the place has a geometry, then present it on the map
-          if (place.geometry.viewport) {
-            map.fitBounds(place.geometry.viewport);
-          } else {
-            map.setCenter(place.geometry.location);
-            map.setZoom(17);
-          }
+        map.setView(dest, 13);
+      })
+      .addTo(map);
 
-          marker.setPosition(place.geometry.location);
-          marker.setVisible(true);
-        });
+    // Tamil Nadu blood bank data
+    const tamilNaduBloodBanks = [
+      // Chennai blood banks
+      {
+        name: "Government Stanley Medical College Hospital Blood Bank",
+        lat: 13.1023,
+        lng: 80.2750,
+        address: "Old Jail Rd, Old Washermanpet, Chennai",
+        phone: "(044) 25281356",
+        hours: "24/7",
+        status: "open",
+        district: "chennai"
+      },
+      {
+        name: "Apollo Hospitals Blood Bank",
+        lat: 13.0287,
+        lng: 80.2078,
+        address: "21, Greams Lane, Off Greams Road, Chennai",
+        phone: "(044) 28290200",
+        hours: "24/7",
+        status: "open",
+        district: "chennai"
+      },
+      {
+        name: "Voluntary Health Services Blood Bank",
+        lat: 12.9395,
+        lng: 80.2405,
+        address: "Taramani, Chennai",
+        phone: "(044) 22542929",
+        hours: "Mon-Sat: 9am-5pm",
+        status: "open",
+        district: "chennai"
+      },
+      
+      // Coimbatore blood banks
+      {
+        name: "Coimbatore Medical College Hospital Blood Bank",
+        lat: 11.0046,
+        lng: 76.9616,
+        address: "Avinashi Road, Coimbatore",
+        phone: "(0422) 2301393",
+        hours: "24/7",
+        status: "open",
+        district: "coimbatore"
+      },
+      {
+        name: "PSG Hospitals Blood Bank",
+        lat: 11.0197,
+        lng: 76.9426,
+        address: "Peelamedu, Coimbatore",
+        phone: "(0422) 2570170",
+        hours: "24/7",
+        status: "open",
+        district: "coimbatore"
+      },
+      
+      // Madurai blood banks
+      {
+        name: "Government Rajaji Hospital Blood Bank",
+        lat: 9.9197,
+        lng: 78.1194,
+        address: "Panagal Rd, Madurai",
+        phone: "(0452) 2532580",
+        hours: "24/7",
+        status: "open",
+        district: "madurai"
+      },
+      {
+        name: "Apollo Speciality Hospitals Blood Bank",
+        lat: 9.9252,
+        lng: 78.1198,
+        address: "No. 1, Nethaji Road, Madurai",
+        phone: "(0452) 2585858",
+        hours: "24/7",
+        status: "open",
+        district: "madurai"
+      },
+      
+      // Trichy blood banks
+      {
+        name: "KAP Viswanatham Government Medical College Blood Bank",
+        lat: 10.7905,
+        lng: 78.7047,
+        address: "Ariyalur Rd, Trichy",
+        phone: "(0431) 2500444",
+        hours: "24/7",
+        status: "open",
+        district: "trichy"
+      },
+      {
+        name: "Sri Ramakrishna Hospital Blood Bank",
+        lat: 10.8045,
+        lng: 78.6976,
+        address: "No. 395, Sarojini Naidu Rd, Trichy",
+        phone: "(0431) 4020111",
+        hours: "24/7",
+        status: "open",
+        district: "trichy"
+      },
+      
+      // Salem blood banks
+      {
+        name: "Government Mohan Kumaramangalam Medical College Blood Bank",
+        lat: 11.6643,
+        lng: 78.1460,
+        address: "Salem - 30",
+        phone: "(0427) 2345531",
+        hours: "24/7",
+        status: "open",
+        district: "salem"
+      },
+      
+      // Tirunelveli blood banks
+      {
+        name: "Tirunelveli Medical College Hospital Blood Bank",
+        lat: 8.7139,
+        lng: 77.7567,
+        address: "High Ground, Tirunelveli",
+        phone: "(0462) 2572371",
+        hours: "24/7",
+        status: "open",
+        district: "tirunelveli"
+      },
+      
+      // Vellore blood banks
+      {
+        name: "Christian Medical College Blood Bank",
+        lat: 12.9322,
+        lng: 79.1332,
+        address: "Ida Scudder Rd, Vellore",
+        phone: "(0416) 2282010",
+        hours: "24/7",
+        status: "open",
+        district: "vellore"
+      },
+      
+      // Erode blood banks
+      {
+        name: "Government Erode Medical College Hospital Blood Bank",
+        lat: 11.3410,
+        lng: 77.7172,
+        address: "Perundurai Rd, Erode",
+        phone: "(0424) 2255111",
+        hours: "24/7",
+        status: "open",
+        district: "erode"
       }
-    </script>
+    ];
 
-    <script
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCIHaBEwx5Jq0esZQExrQS-ndRhiuFx-dQ&libraries=places&callback=initMap"
-      async
-      defer
-    ></script>
-  </head>
-  <body>
-    <input id="autocomplete" placeholder="Enter location" type="text" />
-    <div id="map"></div>
-  </body>
+    // Function to add blood banks based on selected district
+    function addBloodBanks(district = 'all') {
+      // Clear existing blood bank markers
+      bloodBankMarkers.forEach(marker => map.removeLayer(marker));
+      bloodBankMarkers = [];
+      
+      // Filter blood banks by district
+      const filteredBanks = district === 'all' 
+        ? tamilNaduBloodBanks 
+        : tamilNaduBloodBanks.filter(bank => bank.district === district);
+      
+      // Add markers for each blood bank
+      filteredBanks.forEach(bank => {
+        const marker = L.marker([bank.lat, bank.lng], {
+          icon: L.divIcon({
+            className: 'blood-bank-marker',
+            html: '<div style="background-color:#cc0000; width: 18px; height: 18px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+          })
+        }).addTo(map);
+        
+        const statusClass = bank.status === 'open' ? 'status-open' : 'status-closed';
+        
+        marker.bindPopup(`
+          <div class="blood-bank-popup">
+            <h3>${bank.name}</h3>
+            <p><strong>Address:</strong> ${bank.address}</p>
+            <p><strong>Phone:</strong> ${bank.phone}</p>
+            <p><strong>Hours:</strong> ${bank.hours}</p>
+            <p><strong>Status:</strong> <span class="status ${statusClass}">${bank.status.toUpperCase()}</span></p>
+            <button onclick="getDirections(${bank.lat}, ${bank.lng})" style="margin-top: 10px; padding: 5px 10px; background: #cc0000; color: white; border: none; border-radius: 3px; cursor: pointer;">Get Directions</button>
+          </div>
+        `);
+        
+        bloodBankMarkers.push(marker);
+      });
+      
+      // Fit map to show all blood banks and user location if available
+      if (userMarker) {
+        const group = new L.featureGroup([userMarker, ...bloodBankMarkers]);
+        map.fitBounds(group.getBounds().pad(0.1));
+      } else {
+        const group = new L.featureGroup(bloodBankMarkers);
+        map.fitBounds(group.getBounds().pad(0.1));
+      }
+    }
+    
+    // Function to get directions to a blood bank
+    function getDirections(lat, lng) {
+      if (!currentCoords) {
+        alert("Your current location is not available. Please enable location services.");
+        return;
+      }
+      
+      // Remove existing routing control if any
+      if (routingControl) {
+        map.removeControl(routingControl);
+      }
+      
+      // Draw route to the selected blood bank
+      routingControl = L.Routing.control({
+        waypoints: [
+          L.latLng(currentCoords.lat, currentCoords.lng),
+          L.latLng(lat, lng)
+        ],
+        routeWhileDragging: false,
+        lineOptions: {
+          styles: [{color: '#cc0000', weight: 5, opacity: 0.7}]
+        },
+        showAlternatives: false
+      }).addTo(map);
+    }
+    
+    // Function to clear the current route
+    function clearRoute() {
+      if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+      }
+    }
+    
+    // Add event listeners to control buttons
+    document.getElementById('findBloodBanks').addEventListener('click', function() {
+      const district = document.getElementById('districtSelect').value;
+      addBloodBanks(district);
+    });
+    
+    document.getElementById('clearRoute').addEventListener('click', clearRoute);
+    
+    // Add event listener to district filter
+    document.getElementById('districtSelect').addEventListener('change', function() {
+      const district = this.value;
+      addBloodBanks(district);
+    });
+  </script>
+</body>
 </html>
