@@ -1,22 +1,22 @@
-// app.js
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 const cors = require("cors");
+const nodemailer = require("nodemailer");
+require("dotenv").config(); // ✅ load .env
 
 const app = express();
 const DB_PATH = path.join(__dirname, "hospital.db");
 
 app.use(cors());
-app.use(express.json()); // parse JSON bodies
+app.use(express.json());
 
-// Open (or create) database
+// Database setup
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) return console.error("DB open error:", err.message);
   console.log("Connected to SQLite DB at", DB_PATH);
 });
 
-// Create table if not exists
 db.serialize(() => {
   db.run(
     `CREATE TABLE IF NOT EXISTS hospitals (
@@ -38,12 +38,21 @@ db.serialize(() => {
   );
 });
 
-// ---- Routes ----
+// ✅ Setup Brevo SMTP Transport (only key moved to env)
+const transporter = nodemailer.createTransport({
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: "bloodbanklocator247@gmail.com", // ✅ keep same email
+    pass: process.env.BREVO_KEY, // ✅ API key from .env
+  },
+});
 
-// Health
+// ---- Routes ----
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
-// Register
+// ✅ Register hospital and send email
 app.post("/api/register", (req, res) => {
   const {
     name,
@@ -61,8 +70,8 @@ app.post("/api/register", (req, res) => {
       .json({ error: "name, email and password are required" });
   }
 
-  const lat = location && location.latitude ? location.latitude : null;
-  const lon = location && location.longitude ? location.longitude : null;
+  const lat = location?.latitude || null;
+  const lon = location?.longitude || null;
 
   const stmt = `INSERT INTO hospitals
     (name, address, contactPerson, contactNumber, email, password, latitude, longitude)
@@ -79,16 +88,39 @@ app.post("/api/register", (req, res) => {
         console.error("Insert error:", err);
         return res.status(500).json({ error: "Database error" });
       }
-      // this.lastID contains the inserted id
-      res.json({
-        message: "Registered successfully",
-        id: this.lastID,
+
+      const hospitalId = this.lastID;
+
+      // ✅ Send registration email (email unchanged)
+      const mailOptions = {
+        from: '"Life Link" <bloodbanklocator247@gmail.com>',
+        to: email,
+        subject: "Hospital Registration Successful - Life Link",
+        html: `
+          <p>Dear ${name},</p>
+          <p>Your hospital has been successfully registered in the <b>Life Link Blood Bank System</b>.</p>
+          <p><b>Hospital ID:</b> ${hospitalId}</p>
+          <p><b>Contact Person:</b> ${contactPerson}</p>
+          <br/>
+          <p>Thank you for joining our network.</p>
+          <p>— <b>Life Link Team</b></p>
+        `,
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Email send error:", error);
+        } else {
+          console.log("✅ Registration email sent:", info.response);
+        }
       });
+
+      res.json({ message: "Hospital registered successfully", hospitalId });
     }
   );
 });
 
-// Login
+// ✅ Login route
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
   if (!email || !password)
@@ -104,13 +136,12 @@ app.post("/api/login", (req, res) => {
       }
       if (!row) return res.status(401).json({ error: "Invalid credentials" });
 
-      // return hospital summary (no password)
       res.json({ hospital: row });
     }
   );
 });
 
-// Get hospital by id
+// ✅ Get hospital by ID
 app.get("/api/hospital/:id", (req, res) => {
   const id = req.params.id;
   db.get(
@@ -127,7 +158,7 @@ app.get("/api/hospital/:id", (req, res) => {
   );
 });
 
-// Simple list all hospitals (for admin/testing)
+// ✅ List all hospitals
 app.get("/api/hospitals", (req, res) => {
   db.all(
     "SELECT id, name, email, contactPerson, contactNumber, created_at FROM hospitals ORDER BY created_at DESC",
@@ -142,7 +173,7 @@ app.get("/api/hospitals", (req, res) => {
   );
 });
 
-// Start server
+// ✅ Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);

@@ -1,17 +1,30 @@
+require("dotenv").config(); // ✅ to read .env variables
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
+const nodemailer = require("nodemailer"); // ✅ for sending emails
 
 const app = express();
-const PORT = 5002; // keeps the port you saw earlier
+const PORT = 5002;
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname)));
 
-// Use separate DB for stock data
+// ✅ Setup Brevo SMTP Transport using env key
+const transporter = nodemailer.createTransport({
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: "bloodbanklocator247@gmail.com",
+    pass: process.env.BREVO_API_KEY, // ✅ pulled from .env
+  },
+});
+
+// ✅ SQLite Database setup
 const db = new sqlite3.Database("stock.db", (err) => {
   if (err) {
     console.error("Error opening stock.db:", err.message);
@@ -19,7 +32,6 @@ const db = new sqlite3.Database("stock.db", (err) => {
   }
   console.log("Connected to stock.db");
 
-  // Create hospitals table (store hospital meta inside stock.db)
   db.run(
     `CREATE TABLE IF NOT EXISTS hospitals (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,7 +43,6 @@ const db = new sqlite3.Database("stock.db", (err) => {
     )`
   );
 
-  // Create blood_stock table
   db.run(
     `CREATE TABLE IF NOT EXISTS blood_stock (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,7 +55,7 @@ const db = new sqlite3.Database("stock.db", (err) => {
   );
 });
 
-// POST save hospital and its blood stock (overwrites previous stock for same hospital name)
+// ✅ POST: Save hospital + stock + send email
 app.post("/saveStock", (req, res) => {
   const { hospitalInfo, bloodGroups } = req.body;
   if (!hospitalInfo || !hospitalInfo.name || !Array.isArray(bloodGroups)) {
@@ -52,7 +63,7 @@ app.post("/saveStock", (req, res) => {
   }
 
   const { name, address = "", contact = "", email = "" } = hospitalInfo;
-  // Upsert hospital: insert or update (by name)
+
   const upsertHospitalSql = `
     INSERT INTO hospitals (name, address, contact, email, updated_at)
     VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -69,7 +80,6 @@ app.post("/saveStock", (req, res) => {
       return res.status(500).json({ error: "DB error while saving hospital" });
     }
 
-    // get the hospital id (select)
     db.get(`SELECT id FROM hospitals WHERE name = ?`, [name], (err, row) => {
       if (err || !row) {
         console.error("Error retrieving hospital id:", err && err.message);
@@ -80,7 +90,6 @@ app.post("/saveStock", (req, res) => {
 
       const hospitalId = row.id;
 
-      // Delete previous stock rows for this hospital id
       db.run(
         `DELETE FROM blood_stock WHERE hospital_id = ?`,
         [hospitalId],
@@ -92,9 +101,9 @@ app.post("/saveStock", (req, res) => {
               .json({ error: "DB error clearing old stock" });
           }
 
-          // Insert new stock rows
           const insertStock = db.prepare(
-            `INSERT INTO blood_stock (hospital_id, blood_group, units_needed, units_available) VALUES (?, ?, ?, ?)`
+            `INSERT INTO blood_stock (hospital_id, blood_group, units_needed, units_available)
+           VALUES (?, ?, ?, ?)`
           );
 
           for (const bg of bloodGroups) {
@@ -104,14 +113,41 @@ app.post("/saveStock", (req, res) => {
             insertStock.run(hospitalId, group, needed, available);
           }
 
-          insertStock.finalize((err) => {
+          insertStock.finalize(async (err) => {
             if (err) {
               console.error("Error finalizing stock insert:", err.message);
               return res
                 .status(500)
                 .json({ error: "DB error inserting stock" });
             }
-            return res.json({ success: true, hospitalId });
+
+            // ✅ Send stock update confirmation email
+            if (email) {
+              const mailOptions = {
+                from: '"Life Link" <bloodbanklocator247@gmail.com>',
+                to: email,
+                subject: "Stock Update Confirmation - Life Link",
+                html: `
+                <p>Dear ${name},</p>
+                <p>Your blood stock has been successfully updated in the <b>Life Link Blood Bank System</b>.</p>
+                <p><b>Hospital:</b> ${name}</p>
+                <p><b>Contact:</b> ${contact || "N/A"}</p>
+                <p><b>Updated On:</b> ${new Date().toLocaleString()}</p>
+                <br/>
+                <p>Thank you for keeping your blood stock information up-to-date.</p>
+                <p>— <b>Life Link Team</b></p>
+              `,
+              };
+
+              try {
+                await transporter.sendMail(mailOptions);
+                console.log(`✅ Stock update email sent to ${email}`);
+              } catch (emailErr) {
+                console.error("Email send error:", emailErr);
+              }
+            }
+
+            res.json({ success: true, hospitalId });
           });
         }
       );
@@ -119,7 +155,7 @@ app.post("/saveStock", (req, res) => {
   });
 });
 
-// GET hospital + stock by hospital name
+// ✅ GET hospital + stock
 app.get("/getStock/:hospitalName", (req, res) => {
   const hospitalName = req.params.hospitalName;
   db.get(
@@ -130,9 +166,7 @@ app.get("/getStock/:hospitalName", (req, res) => {
         console.error("Error fetching hospital:", err.message);
         return res.status(500).json({ error: "DB error fetching hospital" });
       }
-      if (!hospital) {
-        return res.json({ hospital: null, bloodGroups: [] });
-      }
+      if (!hospital) return res.json({ hospital: null, bloodGroups: [] });
 
       db.all(
         `SELECT blood_group, units_needed, units_available FROM blood_stock WHERE hospital_id = ?`,
@@ -151,7 +185,7 @@ app.get("/getStock/:hospitalName", (req, res) => {
   );
 });
 
-// optional: get list of hospitals (useful later)
+// ✅ Optional: List hospitals
 app.get("/hospitals", (req, res) => {
   db.all(
     `SELECT id, name, address, contact, email, updated_at FROM hospitals ORDER BY updated_at DESC`,
@@ -164,6 +198,7 @@ app.get("/hospitals", (req, res) => {
   );
 });
 
+// ✅ Start server
 app.listen(PORT, () => {
   console.log(`Stock server running at http://localhost:${PORT}`);
 });
