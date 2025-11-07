@@ -1,204 +1,403 @@
-require("dotenv").config(); // ✅ to read .env variables
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
-const bodyParser = require("body-parser");
-const cors = require("cors");
 const path = require("path");
-const nodemailer = require("nodemailer"); // ✅ for sending emails
+const cors = require("cors");
+require("dotenv").config();
+
+// ✅ Brevo Email SDK (same as donors_app.js)
+const SibApiV3Sdk = require("sib-api-v3-sdk");
 
 const app = express();
 const PORT = 5002;
 
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.json());
 
-// ✅ Setup Brevo SMTP Transport using env key
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: "bloodbanklocator247@gmail.com",
-    pass: process.env.BREVO_API_KEY, // ✅ pulled from .env
-  },
-});
+// ✅ Secure Brevo API Setup (same as donors_app.js)
+const defaultClient = SibApiV3Sdk.ApiClient.instance;
+const apiKey = defaultClient.authentications["api-key"];
+apiKey.apiKey = process.env.BREVO_API_KEY; // loaded securely from .env
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-// ✅ SQLite Database setup
-const db = new sqlite3.Database("stock.db", (err) => {
+// ✅ Function to send email (same as donors_app.js)
+async function sendEmail(toEmail, subject, htmlContent) {
+  try {
+    await apiInstance.sendTransacEmail({
+      sender: { email: "bloodbanklocator247@gmail.com", name: "Life Link" },
+      to: [{ email: toEmail }],
+      subject,
+      htmlContent,
+    });
+    console.log("✅ Email sent successfully to:", toEmail);
+    return true;
+  } catch (error) {
+    console.error("❌ Error sending email:", error);
+    return false;
+  }
+}
+
+// Initialize database - will create automatically
+const dbPath = path.join(__dirname, "stock.db");
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
-    console.error("Error opening stock.db:", err.message);
-    process.exit(1);
+    console.error("Error opening database:", err.message);
+  } else {
+    console.log("Connected to SQLite stock database.");
+    initializeDatabase();
   }
-  console.log("Connected to stock.db");
-
-  db.run(
-    `CREATE TABLE IF NOT EXISTS hospitals (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE,
-      address TEXT,
-      contact TEXT,
-      email TEXT,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`
-  );
-
-  db.run(
-    `CREATE TABLE IF NOT EXISTS blood_stock (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      hospital_id INTEGER,
-      blood_group TEXT,
-      units_needed INTEGER,
-      units_available INTEGER,
-      FOREIGN KEY (hospital_id) REFERENCES hospitals(id)
-    )`
-  );
 });
 
-// ✅ POST: Save hospital + stock + send email
-app.post("/saveStock", (req, res) => {
-  const { hospitalInfo, bloodGroups } = req.body;
-  if (!hospitalInfo || !hospitalInfo.name || !Array.isArray(bloodGroups)) {
-    return res.status(400).json({ error: "Invalid payload" });
-  }
-
-  const { name, address = "", contact = "", email = "" } = hospitalInfo;
-
-  const upsertHospitalSql = `
-    INSERT INTO hospitals (name, address, contact, email, updated_at)
-    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-    ON CONFLICT(name) DO UPDATE SET
-      address=excluded.address,
-      contact=excluded.contact,
-      email=excluded.email,
-      updated_at=CURRENT_TIMESTAMP
+function initializeDatabase() {
+  // Create hospitals table
+  const createHospitalsTable = `
+    CREATE TABLE IF NOT EXISTS hospitals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT UNIQUE NOT NULL,
+      address TEXT NOT NULL,
+      contact TEXT NOT NULL,
+      email TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
   `;
 
-  db.run(upsertHospitalSql, [name, address, contact, email], function (err) {
-    if (err) {
-      console.error("Error upserting hospital:", err.message);
-      return res.status(500).json({ error: "DB error while saving hospital" });
-    }
+  // Create blood_stock table
+  const createBloodStockTable = `
+    CREATE TABLE IF NOT EXISTS blood_stock (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      hospital_id INTEGER NOT NULL,
+      blood_group TEXT NOT NULL,
+      units_needed INTEGER DEFAULT 0,
+      units_available INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (hospital_id) REFERENCES hospitals (id) ON DELETE CASCADE,
+      UNIQUE(hospital_id, blood_group)
+    )
+  `;
 
-    db.get(`SELECT id FROM hospitals WHERE name = ?`, [name], (err, row) => {
-      if (err || !row) {
-        console.error("Error retrieving hospital id:", err && err.message);
-        return res
-          .status(500)
-          .json({ error: "DB error retrieving hospital id" });
+  db.serialize(() => {
+    db.run(createHospitalsTable, (err) => {
+      if (err) {
+        console.error("Error creating hospitals table:", err);
+      } else {
+        console.log("Hospitals table created/verified");
+      }
+    });
+
+    db.run(createBloodStockTable, (err) => {
+      if (err) {
+        console.error("Error creating blood_stock table:", err);
+      } else {
+        console.log("Blood stock table created/verified");
+      }
+    });
+  });
+}
+
+// Function to send stock update email
+async function sendStockUpdateEmail(hospitalEmail, hospitalName) {
+  const subject = "Blood Stock Updated Successfully - Life Link";
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #ec1313; text-align: center;">Life Link - Blood Stock Management</h2>
+      <div style="background: #fcf8f8; padding: 20px; border-radius: 10px; border: 1px solid #e7cfcf;">
+        <h3 style="color: #1b0d0d;">Dear ${hospitalName},</h3>
+        <p style="color: #1b0d0d; font-size: 16px;">
+          Your blood stock information has been successfully updated in our system.
+        </p>
+        <p style="color: #1b0d0d; font-size: 16px;">
+          The updated information is now available for donors and patients to view on our platform.
+        </p>
+        <div style="text-align: center; margin: 20px 0;">
+          <div style="background: #ec1313; color: white; padding: 10px 20px; border-radius: 5px; display: inline-block;">
+            Stock Updated Successfully ✓
+          </div>
+        </div>
+        <p style="color: #1b0d0d; font-size: 14px;">
+          Thank you for keeping your blood stock information current and helping save lives.
+        </p>
+        <p style="color: #1b0d0d; font-size: 14px;">
+          Best regards,<br>
+          <strong>Life Link Team</strong>
+        </p>
+      </div>
+    </div>
+  `;
+
+  return await sendEmail(hospitalEmail, subject, htmlContent);
+}
+
+// Save hospital and blood stock data - FIXED VERSION
+app.post("/saveStock", async (req, res) => {
+  const { hospitalInfo, bloodGroups } = req.body;
+
+  if (!hospitalInfo || !bloodGroups) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Missing required data" });
+  }
+
+  db.serialize(() => {
+    // First, check if hospital exists
+    const checkHospital = `SELECT id FROM hospitals WHERE name = ?`;
+
+    db.get(checkHospital, [hospitalInfo.name], (err, existingHospital) => {
+      if (err) {
+        console.error("Error checking hospital:", err);
+        return res.status(500).json({ success: false, error: err.message });
       }
 
-      const hospitalId = row.id;
+      let hospitalId;
 
-      db.run(
-        `DELETE FROM blood_stock WHERE hospital_id = ?`,
-        [hospitalId],
-        (err) => {
-          if (err) {
-            console.error("Error deleting old stock rows:", err.message);
-            return res
-              .status(500)
-              .json({ error: "DB error clearing old stock" });
-          }
+      if (existingHospital) {
+        // Update existing hospital - FIXED: removed created_at from UPDATE
+        hospitalId = existingHospital.id;
+        const updateHospital = `
+          UPDATE hospitals 
+          SET address = ?, contact = ?, email = ? 
+          WHERE id = ?
+        `;
 
-          const insertStock = db.prepare(
-            `INSERT INTO blood_stock (hospital_id, blood_group, units_needed, units_available)
-           VALUES (?, ?, ?, ?)`
-          );
-
-          for (const bg of bloodGroups) {
-            const group = String(bg.group || "").trim();
-            const needed = parseInt(bg.needed, 10) || 0;
-            const available = parseInt(bg.available, 10) || 0;
-            insertStock.run(hospitalId, group, needed, available);
-          }
-
-          insertStock.finalize(async (err) => {
+        db.run(
+          updateHospital,
+          [
+            hospitalInfo.address,
+            hospitalInfo.contact,
+            hospitalInfo.email,
+            hospitalId,
+          ],
+          function (err) {
             if (err) {
-              console.error("Error finalizing stock insert:", err.message);
+              console.error("Error updating hospital:", err);
               return res
                 .status(500)
-                .json({ error: "DB error inserting stock" });
+                .json({ success: false, error: err.message });
+            }
+            console.log("Updated existing hospital:", hospitalInfo.name);
+            saveBloodStock(hospitalId);
+          }
+        );
+      } else {
+        // Insert new hospital
+        const insertHospital = `
+          INSERT INTO hospitals (name, address, contact, email)
+          VALUES (?, ?, ?, ?)
+        `;
+
+        db.run(
+          insertHospital,
+          [
+            hospitalInfo.name,
+            hospitalInfo.address,
+            hospitalInfo.contact,
+            hospitalInfo.email,
+          ],
+          function (err) {
+            if (err) {
+              console.error("Error saving hospital:", err);
+              return res
+                .status(500)
+                .json({ success: false, error: err.message });
             }
 
-            // ✅ Send stock update confirmation email
-            if (email) {
-              const mailOptions = {
-                from: '"Life Link" <bloodbanklocator247@gmail.com>',
-                to: email,
-                subject: "Stock Update Confirmation - Life Link",
-                html: `
-                <p>Dear ${name},</p>
-                <p>Your blood stock has been successfully updated in the <b>Life Link Blood Bank System</b>.</p>
-                <p><b>Hospital:</b> ${name}</p>
-                <p><b>Contact:</b> ${contact || "N/A"}</p>
-                <p><b>Updated On:</b> ${new Date().toLocaleString()}</p>
-                <br/>
-                <p>Thank you for keeping your blood stock information up-to-date.</p>
-                <p>— <b>Life Link Team</b></p>
-              `,
-              };
+            hospitalId = this.lastID;
+            console.log("Created new hospital:", hospitalInfo.name);
+            saveBloodStock(hospitalId);
+          }
+        );
+      }
 
-              try {
-                await transporter.sendMail(mailOptions);
-                console.log(`✅ Stock update email sent to ${email}`);
-              } catch (emailErr) {
-                console.error("Email send error:", emailErr);
+      function saveBloodStock(hospitalId) {
+        // Delete existing blood stock for this hospital
+        const deleteExisting = `DELETE FROM blood_stock WHERE hospital_id = ?`;
+
+        db.run(deleteExisting, [hospitalId], (err) => {
+          if (err) {
+            console.error("Error deleting existing blood stock:", err);
+            return res.status(500).json({ success: false, error: err.message });
+          }
+
+          // Insert new blood stock records
+          const insertBloodStock = `
+            INSERT INTO blood_stock (hospital_id, blood_group, units_needed, units_available)
+            VALUES (?, ?, ?, ?)
+          `;
+
+          const stmt = db.prepare(insertBloodStock);
+          let completed = 0;
+          const total = bloodGroups.length;
+
+          if (total === 0) {
+            // If no blood groups, just return success
+            finalizeProcess();
+            return;
+          }
+
+          bloodGroups.forEach((bg) => {
+            stmt.run(
+              [
+                hospitalId,
+                bg.group,
+                parseInt(bg.needed) || 0,
+                parseInt(bg.available) || 0,
+              ],
+              (err) => {
+                if (err) {
+                  console.error("Error saving blood stock:", err);
+                }
+                completed++;
+
+                if (completed === total) {
+                  stmt.finalize(finalizeProcess);
+                }
               }
+            );
+          });
+
+          function finalizeProcess(err) {
+            if (err) {
+              console.error("Error finalizing blood stock insertion:", err);
+              return res
+                .status(500)
+                .json({ success: false, error: err.message });
             }
 
-            res.json({ success: true, hospitalId });
-          });
-        }
-      );
+            console.log(
+              "Data saved successfully for hospital:",
+              hospitalInfo.name
+            );
+
+            // Send email notification using Brevo API
+            sendStockUpdateEmail(hospitalInfo.email, hospitalInfo.name)
+              .then((emailSent) => {
+                res.json({
+                  success: true,
+                  hospitalId: hospitalId,
+                  emailSent: emailSent,
+                });
+              })
+              .catch((emailError) => {
+                // Still return success even if email fails
+                res.json({
+                  success: true,
+                  hospitalId: hospitalId,
+                  emailSent: false,
+                  emailError: "Data saved but email failed",
+                });
+              });
+          }
+        });
+      }
     });
   });
 });
 
-// ✅ GET hospital + stock
+// Get hospital and blood stock data
 app.get("/getStock/:hospitalName", (req, res) => {
   const hospitalName = req.params.hospitalName;
-  db.get(
-    `SELECT * FROM hospitals WHERE name = ?`,
-    [hospitalName],
-    (err, hospital) => {
-      if (err) {
-        console.error("Error fetching hospital:", err.message);
-        return res.status(500).json({ error: "DB error fetching hospital" });
-      }
-      if (!hospital) return res.json({ hospital: null, bloodGroups: [] });
 
-      db.all(
-        `SELECT blood_group, units_needed, units_available FROM blood_stock WHERE hospital_id = ?`,
-        [hospital.id],
-        (err, rows) => {
-          if (err) {
-            console.error("Error fetching blood stock:", err.message);
-            return res
-              .status(500)
-              .json({ error: "DB error fetching blood stock" });
-          }
-          res.json({ hospital, bloodGroups: rows });
-        }
-      );
+  const query = `
+    SELECT 
+      h.id as hospital_id,
+      h.name,
+      h.address,
+      h.contact,
+      h.email,
+      bs.blood_group,
+      bs.units_needed,
+      bs.units_available
+    FROM hospitals h
+    LEFT JOIN blood_stock bs ON h.id = bs.hospital_id
+    WHERE h.name = ?
+    ORDER BY bs.blood_group
+  `;
+
+  db.all(query, [hospitalName], (err, rows) => {
+    if (err) {
+      console.error("Error fetching data:", err);
+      return res.status(500).json({ success: false, error: err.message });
     }
-  );
+
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Hospital not found" });
+    }
+
+    // Structure the response
+    const hospital = {
+      id: rows[0].hospital_id,
+      name: rows[0].name,
+      address: rows[0].address,
+      contact: rows[0].contact,
+      email: rows[0].email,
+    };
+
+    const bloodGroups = rows
+      .filter((row) => row.blood_group)
+      .map((row) => ({
+        blood_group: row.blood_group,
+        units_needed: row.units_needed,
+        units_available: row.units_available,
+      }));
+
+    res.json({
+      success: true,
+      hospital: hospital,
+      bloodGroups: bloodGroups,
+    });
+  });
 });
 
-// ✅ Optional: List hospitals
+// Get all hospitals (for debugging)
 app.get("/hospitals", (req, res) => {
-  db.all(
-    `SELECT id, name, address, contact, email, updated_at FROM hospitals ORDER BY updated_at DESC`,
-    [],
-    (err, rows) => {
-      if (err)
-        return res.status(500).json({ error: "DB error fetching hospitals" });
-      res.json({ hospitals: rows });
+  const query = "SELECT * FROM hospitals ORDER BY name";
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error("Error fetching hospitals:", err);
+      return res.status(500).json({ success: false, error: err.message });
     }
-  );
+
+    res.json({ success: true, hospitals: rows });
+  });
 });
 
-// ✅ Start server
+// Get all blood stock (for debugging)
+app.get("/bloodstock", (req, res) => {
+  const query = `
+    SELECT bs.*, h.name as hospital_name 
+    FROM blood_stock bs 
+    JOIN hospitals h ON bs.hospital_id = h.id
+    ORDER BY h.name, bs.blood_group
+  `;
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error("Error fetching blood stock:", err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+
+    res.json({ success: true, bloodStock: rows });
+  });
+});
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "Stock server is running",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.listen(PORT, () => {
-  console.log(`Stock server running at http://localhost:${PORT}`);
+  console.log(`Stock server running on http://localhost:${PORT}`);
+  console.log("Endpoints:");
+  console.log(`  POST /saveStock - Save hospital and blood stock data`);
+  console.log(`  GET  /getStock/:hospitalName - Get hospital data`);
+  console.log(`  GET  /hospitals - List all hospitals (debug)`);
+  console.log(`  GET  /bloodstock - List all blood stock (debug)`);
+  console.log(`  GET  /health - Health check`);
+  console.log(`✅ Brevo Email API configured with your existing API key`);
 });

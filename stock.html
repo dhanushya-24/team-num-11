@@ -18,7 +18,6 @@
       style="font-family: 'Public Sans', 'Noto Sans', sans-serif"
     >
       <div class="layout-container flex h-full grow flex-col">
-        <!-- Header remains the same -->
         <header
           class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f3e7e7] px-10 py-3"
         >
@@ -59,12 +58,13 @@
                 <p
                   class="text-[#1b0d0d] text-base font-medium leading-normal pb-2"
                 >
-                  Hospital Name
+                  Hospital Name *
                 </p>
                 <input
                   id="hospitalName"
                   placeholder="Enter Hospital Name"
                   class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0d0d] focus:outline-0 focus:ring-0 border border-[#e7cfcf] bg-[#fcf8f8] focus:border-[#e7cfcf] h-14 placeholder:text-[#9a4c4c] p-[15px] text-base font-normal leading-normal"
+                  required
                 />
               </label>
             </div>
@@ -73,12 +73,13 @@
                 <p
                   class="text-[#1b0d0d] text-base font-medium leading-normal pb-2"
                 >
-                  Address
+                  Address *
                 </p>
                 <input
                   id="address"
                   placeholder="Enter Address"
                   class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0d0d] focus:outline-0 focus:ring-0 border border-[#e7cfcf] bg-[#fcf8f8] focus:border-[#e7cfcf] h-14 placeholder:text-[#9a4c4c] p-[15px] text-base font-normal leading-normal"
+                  required
                 />
               </label>
             </div>
@@ -87,12 +88,13 @@
                 <p
                   class="text-[#1b0d0d] text-base font-medium leading-normal pb-2"
                 >
-                  Contact
+                  Contact *
                 </p>
                 <input
                   id="contact"
                   placeholder="Enter Contact Number"
                   class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0d0d] focus:outline-0 focus:ring-0 border border-[#e7cfcf] bg-[#fcf8f8] focus:border-[#e7cfcf] h-14 placeholder:text-[#9a4c4c] p-[15px] text-base font-normal leading-normal"
+                  required
                 />
               </label>
             </div>
@@ -101,12 +103,14 @@
                 <p
                   class="text-[#1b0d0d] text-base font-medium leading-normal pb-2"
                 >
-                  Email
+                  Email *
                 </p>
                 <input
                   id="email"
+                  type="email"
                   placeholder="Enter Email Address"
                   class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1b0d0d] focus:outline-0 focus:ring-0 border border-[#e7cfcf] bg-[#fcf8f8] focus:border-[#e7cfcf] h-14 placeholder:text-[#9a4c4c] p-[15px] text-base font-normal leading-normal"
+                  required
                 />
               </label>
             </div>
@@ -142,58 +146,175 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <!-- Blood groups -->
                     <tr>
                       <td class="px-4 py-2">A+</td>
-                      <td><input type="number" class="unitNeeded" /></td>
-                      <td><input type="number" class="unitAvailable" /></td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitNeeded"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitAvailable"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
                     </tr>
                     <tr>
                       <td class="px-4 py-2">A-</td>
-                      <td><input type="number" class="unitNeeded" /></td>
-                      <td><input type="number" class="unitAvailable" /></td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitNeeded"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitAvailable"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
                     </tr>
                     <tr>
                       <td class="px-4 py-2">B+</td>
-                      <td><input type="number" class="unitNeeded" /></td>
-                      <td><input type="number" class="unitAvailable" /></td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitNeeded"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitAvailable"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
                     </tr>
                     <tr>
                       <td class="px-4 py-2">B-</td>
-                      <td><input type="number" class="unitNeeded" /></td>
-                      <td><input type="number" class="unitAvailable" /></td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitNeeded"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitAvailable"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
                     </tr>
                     <tr>
                       <td class="px-4 py-2">AB+</td>
-                      <td><input type="number" class="unitNeeded" /></td>
-                      <td><input type="number" class="unitAvailable" /></td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitNeeded"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitAvailable"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
                     </tr>
                     <tr>
                       <td class="px-4 py-2">AB-</td>
-                      <td><input type="number" class="unitNeeded" /></td>
-                      <td><input type="number" class="unitAvailable" /></td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitNeeded"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitAvailable"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
                     </tr>
                     <tr>
                       <td class="px-4 py-2">O+</td>
-                      <td><input type="number" class="unitNeeded" /></td>
-                      <td><input type="number" class="unitAvailable" /></td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitNeeded"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitAvailable"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
                     </tr>
                     <tr>
                       <td class="px-4 py-2">O-</td>
-                      <td><input type="number" class="unitNeeded" /></td>
-                      <td><input type="number" class="unitAvailable" /></td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitNeeded"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="unitAvailable"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
             </div>
 
-            <div class="flex px-4 py-3 justify-end">
+            <div class="flex px-4 py-3 justify-end gap-4">
+              <button
+                id="resetBtn"
+                class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-500 text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]"
+              >
+                Reset
+              </button>
               <button
                 id="updateBtn"
-                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#ec1313] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]"
+                class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#ec1313] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]"
               >
-                Update
+                Update Stock
               </button>
             </div>
           </div>
@@ -204,21 +325,48 @@
     <script>
       document.getElementById("updateBtn").addEventListener("click", () => {
         const hospitalInfo = {
-          name: document.getElementById("hospitalName").value,
-          address: document.getElementById("address").value,
-          contact: document.getElementById("contact").value,
-          email: document.getElementById("email").value,
+          name: document.getElementById("hospitalName").value.trim(),
+          address: document.getElementById("address").value.trim(),
+          contact: document.getElementById("contact").value.trim(),
+          email: document.getElementById("email").value.trim(),
         };
+
+        // Validate required fields
+        if (
+          !hospitalInfo.name ||
+          !hospitalInfo.address ||
+          !hospitalInfo.contact ||
+          !hospitalInfo.email
+        ) {
+          alert("Please fill in all required hospital information fields.");
+          return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(hospitalInfo.email)) {
+          alert("Please enter a valid email address.");
+          return;
+        }
 
         const bloodGroups = [];
         const rows = document.querySelectorAll("#bloodTable tbody tr");
         rows.forEach((row) => {
+          const needed = row.querySelector(".unitNeeded").value;
+          const available = row.querySelector(".unitAvailable").value;
+
           bloodGroups.push({
             group: row.cells[0].innerText,
-            needed: row.querySelector(".unitNeeded").value,
-            available: row.querySelector(".unitAvailable").value,
+            needed: needed ? parseInt(needed) : 0,
+            available: available ? parseInt(available) : 0,
           });
         });
+
+        // Show loading state
+        const updateBtn = document.getElementById("updateBtn");
+        const originalText = updateBtn.textContent;
+        updateBtn.textContent = "Updating...";
+        updateBtn.disabled = true;
 
         fetch("http://localhost:5002/saveStock", {
           method: "POST",
@@ -228,19 +376,46 @@
           .then((res) => res.json())
           .then((data) => {
             if (data.success) {
-              // store hospital name so stock-info can ask for it
               localStorage.setItem("selectedHospital", hospitalInfo.name);
+              let message = "Blood stock updated successfully!";
+              if (data.emailSent) {
+                message +=
+                  " A confirmation email has been sent to your registered email.";
+              } else {
+                message += " (Email notification failed, but data was saved)";
+              }
+              alert(message);
               window.location.href = "stock-info.html";
             } else {
-              alert("Error saving data: " + (data.error || "unknown"));
+              alert("Error saving data: " + (data.error || "unknown error"));
             }
           })
           .catch((err) => {
             console.error("Network error:", err);
             alert(
-              "Failed to connect to stock server at http://localhost:5002. Start the server and try again."
+              "Failed to connect to stock server at http://localhost:5002. Make sure the server is running."
             );
+          })
+          .finally(() => {
+            updateBtn.textContent = originalText;
+            updateBtn.disabled = false;
           });
+      });
+
+      // Reset form functionality
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        if (confirm("Are you sure you want to reset all fields?")) {
+          document.getElementById("hospitalName").value = "";
+          document.getElementById("address").value = "";
+          document.getElementById("contact").value = "";
+          document.getElementById("email").value = "";
+
+          document
+            .querySelectorAll(".unitNeeded, .unitAvailable")
+            .forEach((input) => {
+              input.value = "0";
+            });
+        }
       });
     </script>
   </body>

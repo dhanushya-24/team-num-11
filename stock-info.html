@@ -32,6 +32,7 @@
             <div class="flex items-center gap-9">
               <nav><a href="home.html">Homepage</a></nav>
               <nav><a href="map.html">Map</a></nav>
+              <nav><a href="stock.html">Update Stock</a></nav>
             </div>
           </div>
         </header>
@@ -54,26 +55,28 @@
               >
                 Hospital Information
               </h2>
-              <div class="px-4 py-3">
+              <div
+                class="px-4 py-3 bg-white rounded-lg border border-[#e7cfcf]"
+              >
                 <p
                   id="hospitalNameDisplay"
-                  class="text-[#1b0d0d] text-base pb-1"
+                  class="text-[#1b0d0d] text-base pb-2"
                 ></p>
                 <p
                   id="addressDisplay"
-                  class="text-[#1b0d0d] text-base pb-1"
+                  class="text-[#1b0d0d] text-base pb-2"
                 ></p>
                 <p
                   id="contactDisplay"
-                  class="text-[#1b0d0d] text-base pb-1"
+                  class="text-[#1b0d0d] text-base pb-2"
                 ></p>
-                <p id="emailDisplay" class="text-[#1b0d0d] text-base pb-1"></p>
+                <p id="emailDisplay" class="text-[#1b0d0d] text-base pb-2"></p>
               </div>
 
               <h2
                 class="text-[#1b0d0d] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5"
               >
-                Blood Stock
+                Blood Stock Availability
               </h2>
               <div
                 class="flex overflow-hidden rounded-lg border border-[#e7cfcf] bg-[#fcf8f8]"
@@ -98,8 +101,19 @@
                       </th>
                     </tr>
                   </thead>
-                  <tbody></tbody>
+                  <tbody id="bloodStockBody">
+                    <!-- Data will be populated here -->
+                  </tbody>
                 </table>
+              </div>
+
+              <div class="flex px-4 py-3 justify-end">
+                <button
+                  onclick="window.location.href='stock.html'"
+                  class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#ec1313] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]"
+                >
+                  Update Stock
+                </button>
               </div>
             </div>
           </div>
@@ -112,50 +126,89 @@
 
       if (!hospitalName) {
         document.getElementById("hospitalNameDisplay").innerText =
-          "No hospital selected.";
+          "No hospital selected. Please go to the stock page first.";
       } else {
+        // Show loading state
+        document.getElementById("bloodStockBody").innerHTML =
+          '<tr><td colspan="3" class="px-4 py-3 text-center">Loading data...</td></tr>';
+
         fetch(
           `http://localhost:5002/getStock/${encodeURIComponent(hospitalName)}`
         )
-          .then((res) => res.json())
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return res.json();
+          })
           .then((data) => {
+            if (!data.success) {
+              document.getElementById("hospitalNameDisplay").innerText =
+                "Error: " + (data.error || "Failed to load data");
+              return;
+            }
+
             const { hospital, bloodGroups } = data;
+
             if (!hospital) {
               document.getElementById("hospitalNameDisplay").innerText =
                 "No data found for: " + hospitalName;
               return;
             }
 
+            // Display hospital information
             document.getElementById(
               "hospitalNameDisplay"
-            ).innerText = `Hospital Name: ${hospital.name}`;
+            ).innerHTML = `<strong>Hospital Name:</strong> ${hospital.name}`;
             document.getElementById(
               "addressDisplay"
-            ).innerText = `Address: ${hospital.address}`;
+            ).innerHTML = `<strong>Address:</strong> ${hospital.address}`;
             document.getElementById(
               "contactDisplay"
-            ).innerText = `Contact: ${hospital.contact}`;
+            ).innerHTML = `<strong>Contact:</strong> ${hospital.contact}`;
             document.getElementById(
               "emailDisplay"
-            ).innerText = `Email: ${hospital.email}`;
+            ).innerHTML = `<strong>Email:</strong> ${hospital.email}`;
 
-            const tbody = document.querySelector("#bloodTableDisplay tbody");
+            // Display blood stock
+            const tbody = document.getElementById("bloodStockBody");
             tbody.innerHTML = "";
-            bloodGroups.forEach((bg) => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-            <td class="px-4 py-2">${bg.blood_group}</td>
-            <td class="px-4 py-2">${bg.units_needed}</td>
-            <td class="px-4 py-2">${bg.units_available}</td>
-          `;
-              tbody.appendChild(tr);
-            });
+
+            if (bloodGroups && bloodGroups.length > 0) {
+              bloodGroups.forEach((bg) => {
+                const tr = document.createElement("tr");
+                tr.className = "border-b border-[#e7cfcf] hover:bg-[#f9f0f0]";
+
+                // Highlight critical stock levels
+                const needed = bg.units_needed || 0;
+                const available = bg.units_available || 0;
+                const neededClass =
+                  needed > available
+                    ? "text-red-600 font-bold"
+                    : "text-green-600";
+                const availableClass =
+                  available === 0 ? "text-red-600 font-bold" : "text-green-600";
+
+                tr.innerHTML = `
+                  <td class="px-4 py-3 font-medium">${
+                    bg.blood_group || "N/A"
+                  }</td>
+                  <td class="px-4 py-3 ${neededClass}">${needed}</td>
+                  <td class="px-4 py-3 ${availableClass}">${available}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+            } else {
+              tbody.innerHTML =
+                '<tr><td colspan="3" class="px-4 py-3 text-center">No blood stock data available</td></tr>';
+            }
           })
           .catch((err) => {
             console.error("Fetch error:", err);
-            alert(
-              "Error loading stock data. Make sure stock_server.js is running at http://localhost:5002"
-            );
+            document.getElementById("hospitalNameDisplay").innerText =
+              "Error loading data for: " + hospitalName;
+            document.getElementById("bloodStockBody").innerHTML =
+              '<tr><td colspan="3" class="px-4 py-3 text-center text-red-600">Error loading data. Make sure the stock server is running.</td></tr>';
           });
       }
     </script>
