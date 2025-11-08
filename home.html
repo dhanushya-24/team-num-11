@@ -14,112 +14,75 @@
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
-    <!-- Language Management Script -->
+    <!-- Enhanced Language Persistence Script -->
     <script>
-      // Enhanced Cookie management functions
-      function setCookie(name, value, days) {
-        const d = new Date();
-        d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
-        const expires = "expires=" + d.toUTCString();
-        document.cookie =
-          name +
-          "=" +
-          encodeURIComponent(value) +
-          ";" +
-          expires +
-          ";path=/;SameSite=Lax";
-      }
+      // Force language persistence - Enhanced version
+      function forceLanguagePersistence() {
+        console.log("Force language persistence initialized");
 
-      function getCookie(name) {
-        const nameEQ = name + "=";
-        const ca = document.cookie.split(";");
-        for (let i = 0; i < ca.length; i++) {
-          let c = ca[i];
-          while (c.charAt(0) === " ") c = c.substring(1, c.length);
-          if (c.indexOf(nameEQ) === 0)
-            return decodeURIComponent(c.substring(nameEQ.length, c.length));
-        }
-        return null;
-      }
-
-      // Get current language from cookie
-      function getCurrentLanguage() {
-        const googtrans = getCookie("googtrans");
-        if (googtrans && googtrans.startsWith("/en/")) {
-          return googtrans.split("/")[2] || "en";
-        }
-        return "en";
-      }
-
-      // Ensure default language is set
-      function ensureLanguageCookie() {
-        const currentLang = getCurrentLanguage();
-        if (!getCookie("googtrans")) {
-          setCookie("googtrans", "/en/en", 365);
-        }
-        return currentLang;
-      }
-
-      // Apply language to Google Translate
-      function applyLanguageToGoogleTranslate(langCode) {
-        if (!window.google || !window.google.translate) return false;
-
-        const select = document.querySelector(".goog-te-combo");
-        if (select && select.value !== langCode) {
-          select.value = langCode;
-          select.dispatchEvent(new Event("change"));
-          return true;
-        }
-        return false;
-      }
-
-      // Monitor for language changes
-      function setupLanguageChangeMonitor() {
-        // Monitor dropdown changes
-        setInterval(() => {
+        // Save language before leaving page
+        window.addEventListener("beforeunload", function () {
           const select = document.querySelector(".goog-te-combo");
-          if (select && !select.hasAttribute("data-lang-listener")) {
-            select.setAttribute("data-lang-listener", "true");
-            select.addEventListener("change", function () {
-              const newLang = this.value;
-              setCookie("googtrans", `/en/${newLang}`, 365);
-              console.log("Language changed to:", newLang);
-            });
+          if (select && select.value !== "en") {
+            localStorage.setItem("selectedLanguage", select.value);
+            localStorage.setItem("languageTimestamp", Date.now());
+            console.log("Language saved before unload:", select.value);
           }
-        }, 1000);
+        });
 
-        // Monitor iframe clicks
-        document.addEventListener("click", function () {
-          const iframe = document.querySelector(".goog-te-menu-frame");
-          if (iframe && iframe.contentDocument) {
-            const items = iframe.contentDocument.querySelectorAll(
-              ".goog-te-menu2-item"
-            );
-            items.forEach((item) => {
-              if (!item.hasAttribute("data-lang-listener")) {
-                item.setAttribute("data-lang-listener", "true");
-                item.addEventListener("click", function () {
-                  setTimeout(() => {
-                    const select = document.querySelector(".goog-te-combo");
-                    if (select) {
-                      const newLang = select.value;
-                      setCookie("googtrans", `/en/${newLang}`, 365);
-                      console.log("Language changed via iframe to:", newLang);
-                    }
-                  }, 100);
-                });
+        // Apply language on page load with multiple attempts
+        document.addEventListener("DOMContentLoaded", function () {
+          const savedLang = localStorage.getItem("selectedLanguage");
+          const timestamp = localStorage.getItem("languageTimestamp");
+          const isRecent =
+            timestamp && Date.now() - parseInt(timestamp) < 300000; // 5 minutes
+
+          if (savedLang && savedLang !== "en" && isRecent) {
+            console.log("Applying saved language:", savedLang);
+
+            let attempts = 0;
+            const maxAttempts = 30; // Try for 15 seconds
+
+            const applyLanguage = setInterval(() => {
+              attempts++;
+              const select = document.querySelector(".goog-te-combo");
+
+              if (select) {
+                if (select.value !== savedLang) {
+                  console.log(
+                    "Setting language to:",
+                    savedLang,
+                    "Attempt:",
+                    attempts
+                  );
+                  select.value = savedLang;
+                  select.dispatchEvent(new Event("change"));
+
+                  // Also set cookie for Google Translate
+                  document.cookie = `googtrans=/en/${savedLang}; path=/; max-age=31536000`;
+                } else {
+                  console.log("Language already set to:", savedLang);
+                }
+                clearInterval(applyLanguage);
+              } else if (attempts >= maxAttempts) {
+                console.log(
+                  "Failed to find language selector after",
+                  attempts,
+                  "attempts"
+                );
+                clearInterval(applyLanguage);
               }
-            });
+            }, 500);
           }
         });
       }
 
-      // Initialize when DOM is ready
-      document.addEventListener("DOMContentLoaded", function () {
-        ensureLanguageCookie();
-        setupLanguageChangeMonitor();
-      });
+      // Initialize force persistence
+      forceLanguagePersistence();
     </script>
+
+    <!-- Include the shared language manager -->
+    <script src="language-manager.js"></script>
   </head>
   <body>
     <div
@@ -152,35 +115,16 @@
           <div class="flex flex-1 justify-end gap-8">
             <div class="flex items-center gap-9">
               <nav>
-                <a href="register.html">Register</a>
+                <a href="register.html" onclick="saveLanguageBeforeNavigation()"
+                  >Register</a
+                >
               </nav>
 
-              <a href="map.html">Map</a>
-            </div>
-            <div class="flex gap-2">
-              <button
-                class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-[#f3e7e7] text-[#1b0d0d] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5"
+              <a href="map.html" onclick="saveLanguageBeforeNavigation()"
+                >Map</a
               >
-                <div
-                  class="text-[#1b0d0d]"
-                  data-icon="Bell"
-                  data-size="20px"
-                  data-weight="regular"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20px"
-                    height="20px"
-                    fill="currentColor"
-                    viewBox="0 0 256 256"
-                  >
-                    <path
-                      d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"
-                    ></path>
-                  </svg>
-                </div>
-              </button>
             </div>
+            <div class="flex gap-2"></div>
           </div>
         </header>
         <div class="px-40 flex flex-1 justify-center py-5">
@@ -246,6 +190,7 @@
                       >
                         <button
                           class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 @[480px]:h-12 @[480px]:px-5 bg-[#ec1313] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em] @[480px]:text-base @[480px]:font-bold @[480px]:leading-normal @[480px]:tracking-[0.015em]"
+                          onclick="saveLanguageBeforeNavigation()"
                         >
                           <nav>
                             <a href="map.html">Search</a>
@@ -271,6 +216,7 @@
             <div class="flex px-4 py-3 justify-center">
               <button
                 class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#ec1313] text-[#fcf8f8] text-sm font-bold leading-normal tracking-[0.015em]"
+                onclick="saveLanguageBeforeNavigation()"
               >
                 <nav>
                   <a href="donor.html">Register as a Donor</a>
@@ -361,7 +307,8 @@
               >
                 <a
                   class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
-                  href="#"
+                  href="about.html"
+                  onclick="saveLanguageBeforeNavigation()"
                   ><nav>
                     <a href="about.html">About Us</a>
                   </nav></a
@@ -369,13 +316,15 @@
 
                 <a
                   class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
-                  href="#"
+                  href="contact.html"
+                  onclick="saveLanguageBeforeNavigation()"
                 >
                   <a href="contact.html">Contact</a>
                 </a>
                 <a
                   class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
-                  href="#"
+                  href="terms.html"
+                  onclick="saveLanguageBeforeNavigation()"
                 >
                   <a href="terms.html">Terms And Services</a></a
                 >
@@ -396,10 +345,19 @@
     ></div>
 
     <script>
-      function googleTranslateElementInit() {
-        // Ensure language cookie is set before initializing
-        ensureLanguageCookie();
+      // Function to save language before navigation
+      function saveLanguageBeforeNavigation() {
+        const select = document.querySelector(".goog-te-combo");
+        if (select && select.value !== "en") {
+          localStorage.setItem("selectedLanguage", select.value);
+          localStorage.setItem("languageTimestamp", Date.now());
+          console.log("Language saved before navigation:", select.value);
+        }
+      }
 
+      // Enhanced Google Translate initialization
+      function googleTranslateElementInit() {
+        console.log("Google Translate initializing...");
         new google.translate.TranslateElement(
           {
             pageLanguage: "en",
@@ -410,22 +368,21 @@
           "google_translate_element"
         );
 
-        // Apply saved language after a delay to ensure Google Translate is loaded
+        // Additional language application after Google Translate loads
         setTimeout(() => {
-          const currentLang = getCurrentLanguage();
-          if (currentLang !== "en") {
-            let applyAttempts = 0;
-            const applyInterval = setInterval(() => {
-              applyAttempts++;
-              if (
-                applyLanguageToGoogleTranslate(currentLang) ||
-                applyAttempts > 10
-              ) {
-                clearInterval(applyInterval);
-              }
-            }, 300);
+          const savedLang = localStorage.getItem("selectedLanguage");
+          if (savedLang && savedLang !== "en") {
+            console.log(
+              "Applying language after Google Translate load:",
+              savedLang
+            );
+            const select = document.querySelector(".goog-te-combo");
+            if (select && select.value !== savedLang) {
+              select.value = savedLang;
+              select.dispatchEvent(new Event("change"));
+            }
           }
-        }, 2000);
+        }, 3000);
       }
     </script>
 

@@ -13,6 +13,9 @@
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <!-- Include the shared language manager -->
+    <script src="language-manager.js"></script>
   </head>
   <body>
     <div
@@ -196,17 +199,20 @@
                 <a
                   class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
                   href="#"
-                  >About Us</a
+                >
+                  <a href="about.html">About</a></a
                 >
                 <a
                   class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
                   href="#"
-                  >Contact</a
+                >
+                  <a href="contact.html">Contact</a></a
                 >
                 <a
                   class="text-[#9a4c4c] text-base font-normal leading-normal min-w-40"
                   href="#"
-                  >Privacy Policy</a
+                >
+                  <a href="terms.html">Privacy Policy</a></a
                 >
               </div>
               <p class="text-[#9a4c4c] text-base font-normal leading-normal">
@@ -225,68 +231,7 @@
     ></div>
 
     <script>
-      // Cookie management functions
-      function setCookie(name, value, days) {
-        const d = new Date();
-        d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
-        const expires = "expires=" + d.toUTCString();
-        document.cookie = name + "=" + value + ";" + expires + ";path=/";
-      }
-
-      function getCookie(name) {
-        const nameEQ = name + "=";
-        const ca = document.cookie.split(";");
-        for (let i = 0; i < ca.length; i++) {
-          let c = ca[i];
-          while (c.charAt(0) === " ") c = c.substring(1, c.length);
-          if (c.indexOf(nameEQ) === 0)
-            return c.substring(nameEQ.length, c.length);
-        }
-        return null;
-      }
-
-      // Ensure default language is English
-      function ensureEnglishDefault() {
-        const currentLang = getCookie("googtrans");
-        // If no language is set or it's not English, set it to English
-        if (!currentLang || currentLang !== "/en/en") {
-          setCookie("googtrans", "/en/en", 365);
-        }
-      }
-
-      // Function to apply the saved language
-      function applySavedLanguage() {
-        const savedLang = getCookie("googtrans");
-        if (savedLang && savedLang !== "/en/en") {
-          // Force Google Translate to use the saved language
-          const langCode = savedLang.split("/").pop();
-          if (window.google && window.google.translate) {
-            const translateInstance = new google.translate.TranslateElement(
-              {
-                pageLanguage: "en",
-                includedLanguages:
-                  "en,ta,hi,ml,te,kn,bn,gu,mr,pa,ur,or,as,ne,sd,si,sa,mai,doi,ks",
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-              },
-              "google_translate_element"
-            );
-
-            // Set the selected language
-            setTimeout(() => {
-              const select = document.querySelector(".goog-te-combo");
-              if (select) {
-                select.value = langCode;
-                select.dispatchEvent(new Event("change"));
-              }
-            }, 1000);
-          }
-        }
-      }
-
-      // Initialize Google Translate
       function googleTranslateElementInit() {
-        ensureEnglishDefault();
-
         new google.translate.TranslateElement(
           {
             pageLanguage: "en",
@@ -296,97 +241,7 @@
           },
           "google_translate_element"
         );
-
-        // Apply saved language after initialization
-        setTimeout(applySavedLanguage, 1500);
-
-        // Monitor for language changes
-        monitorLanguageChanges();
       }
-
-      // Monitor for language selection changes
-      function monitorLanguageChanges() {
-        // Check for language dropdown changes
-        setInterval(() => {
-          const select = document.querySelector(".goog-te-combo");
-          if (select && !select.hasAttribute("data-listener-attached")) {
-            select.setAttribute("data-listener-attached", "true");
-            select.addEventListener("change", function () {
-              const selectedLang = this.value;
-              setCookie("googtrans", `/en/${selectedLang}`, 365);
-              console.log("Language changed to:", selectedLang);
-            });
-          }
-        }, 1000);
-
-        // Also monitor for iframe clicks (alternative language selection method)
-        document.addEventListener("click", function () {
-          const iframe = document.querySelector(".goog-te-menu-frame");
-          if (iframe) {
-            iframe.addEventListener("load", function () {
-              const langMenu = iframe.contentDocument.querySelectorAll(
-                ".goog-te-menu2-item"
-              );
-              langMenu.forEach((item) => {
-                if (!item.hasAttribute("data-listener-attached")) {
-                  item.setAttribute("data-listener-attached", "true");
-                  item.addEventListener("click", function () {
-                    const langText = item
-                      .querySelector("span.text")
-                      .innerText.toLowerCase();
-                    const langMap = {
-                      tamil: "ta",
-                      hindi: "hi",
-                      malayalam: "ml",
-                      telugu: "te",
-                      kannada: "kn",
-                      bengali: "bn",
-                      gujarati: "gu",
-                      marathi: "mr",
-                      punjabi: "pa",
-                      urdu: "ur",
-                      odia: "or",
-                      assamese: "as",
-                      nepali: "ne",
-                      sindhi: "sd",
-                      sinhala: "si",
-                      sanskrit: "sa",
-                      maithili: "mai",
-                      dogri: "doi",
-                      kashmiri: "ks",
-                      english: "en",
-                    };
-                    const selectedLang = langMap[langText] || "en";
-                    setCookie("googtrans", `/en/${selectedLang}`, 365);
-                    console.log(
-                      "Language changed via iframe to:",
-                      selectedLang
-                    );
-                  });
-                }
-              });
-            });
-          }
-        });
-      }
-
-      // Call ensureEnglishDefault on page load
-      document.addEventListener("DOMContentLoaded", function () {
-        ensureEnglishDefault();
-
-        // If we're coming from another page with a language set, apply it immediately
-        const savedLang = getCookie("googtrans");
-        if (savedLang && savedLang !== "/en/en") {
-          // Small delay to ensure DOM is fully loaded
-          setTimeout(() => {
-            const langCode = savedLang.split("/").pop();
-            const select = document.querySelector(".goog-te-combo");
-            if (select) {
-              select.value = langCode;
-            }
-          }, 500);
-        }
-      });
     </script>
 
     <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>

@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
     <link
@@ -12,43 +13,9 @@
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <!-- Google Translate -->
-    <div
-      id="google_translate_element"
-      style="position: fixed; top: 65px; right: 90px; z-index: 1000"
-    ></div>
-    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-    <script>
-      // Cookie management functions
-      function setCookie(name, value, days) {
-        const d = new Date();
-        d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
-        const expires = "expires=" + d.toUTCString();
-        document.cookie = name + "=" + value + ";" + expires + ";path=/";
-      }
 
-      function getCookie(name) {
-        const nameEQ = name + "=";
-        const ca = document.cookie.split(";");
-        for (let i = 0; i < ca.length; i++) {
-          let c = ca[i];
-          while (c.charAt(0) === " ") c = c.substring(1, c.length);
-          if (c.indexOf(nameEQ) === 0)
-            return c.substring(nameEQ.length, c.length);
-        }
-        return null;
-      }
-
-      // Ensure default language is English
-      function ensureEnglishDefault() {
-        const currentLang = getCookie("googtrans");
-        if (!currentLang || currentLang !== "/en/en") {
-          setCookie("googtrans", "/en/en", 365);
-        }
-      }
-
-      document.addEventListener("DOMContentLoaded", ensureEnglishDefault);
-    </script>
+    <!-- Include the shared language manager -->
+    <script src="language-manager.js"></script>
   </head>
   <body>
     <div
@@ -81,64 +48,18 @@
           <div class="flex flex-1 justify-end gap-8">
             <div class="flex items-center gap-9">
               <nav>
-                <a href="home.html">Homepage</a>
+                <a href="home.html" onclick="saveLanguageBeforeNavigation()"
+                  >Homepage</a
+                >
               </nav>
               <nav>
-                <a href="map.html">Map</a>
+                <a href="map.html" onclick="saveLanguageBeforeNavigation()"
+                  >Map</a
+                >
               </nav>
             </div>
             <div class="flex gap-2">
-              <button
-                class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-[#f3e7e8] text-[#1b0e0e] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5"
-              >
-                <div
-                  class="text-[#1b0e0e]"
-                  data-icon="GlobeHemisphereWest"
-                  data-size="20px"
-                  data-weight="regular"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20px"
-                    height="20px"
-                    fill="currentColor"
-                    viewBox="0 0 256 256"
-                  >
-                    <path
-                      d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm88,104a87.62,87.62,0,0,1-6.4,32.94l-44.7-27.49a15.92,15.92,0,0,0-6.24-2.23l-22.82-3.08a16.11,16.11,0,0,0-16,7.86h-8.72l-3.8-7.86a15.91,15.91,0,0,0-11-8.67l-8-1.73L96.14,104h16.71a16.06,16.06,0,0,0,7.73-2l12.25-6.76a16.62,16.62,0,0,0,3-2.14l26.91-24.34A15.93,15.93,0,0,0,166,49.1l-.36-.65A88.11,88.11,0,0,1,216,128ZM143.31,41.34,152,56.9,125.09,81.24,112.85,88H96.14a16,16,0,0,0-13.88,8l-8.73,15.23L63.38,84.19,74.32,58.32a87.87,87.87,0,0,1,69-17ZM40,128a87.53,87.53,0,0,1,8.54-37.8l11.34,30.27a16,16,0,0,0,11.62,10l21.43,4.61L96.74,143a16.09,16.09,0,0,0,14.4,9h1.48l-7.23,16.23a16,16,0,0,0,2.86,17.37l.14.14L128,205.94l-1.94,10A88.11,88.11,0,0,1,40,128Zm102.58,86.78,1.13-5.81a16.09,16.09,0,0,0-4-13.9,1.85,1.85,0,0,1-.14-.14L120,174.74,133.7,144l22.82,3.08,45.72,28.12A88.18,88.18,0,0,1,142.58,214.78Z"
-                    ></path>
-                  </svg>
-                </div>
-              </button>
-              <button
-                class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-[#f3e7e8] text-[#1b0e0e] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5"
-              >
-                <div
-                  class="text-[#1b0e0e]"
-                  data-icon="Bell"
-                  data-size="20px"
-                  data-weight="regular"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20px"
-                    height="20px"
-                    fill="currentColor"
-                    viewBox="0 0 256 256"
-                  >
-                    <path
-                      d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"
-                    ></path>
-                  </svg>
-                </div>
-              </button>
-            </div>
-            <div
-              class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-              style="
-                background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAoISP5bPKWaN9HNEO83_kgl0bENwjZg7ijvKwgc1ejgdMz17KKjgscTq0LOTsmgmBVm1Z_LHDRI-_hopw5Q2qqXt6nXbkMf2qvC4l-EDThWHetBmbwQBNvqghT2vpF4ceOmwn6fXDyV_hWyCdYD5mMti6OG9umR_4oi_11I-U08gOC63d4NsIS-0TKl1NGL_opI3RNyk0AgQfYB0L6yPJgEpje40CZxhuRFaobkTux79xW2jI1fjDrXT6uQq7xkaz8Q_8vumstPtGC');
-              "
-            ></div>
+              
           </div>
         </header>
         <div class="px-40 flex flex-1 justify-center py-5">
@@ -288,16 +209,25 @@
         </footer>
       </div>
     </div>
+
     <!-- Google Translate -->
     <div
       id="google_translate_element"
       style="position: fixed; top: 65px; right: 90px; z-index: 1000"
     ></div>
-    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-    <script>
-      function googleTranslateElementInit() {
-        ensureEnglishDefault();
 
+    <script>
+      // Function to save language before navigation
+      function saveLanguageBeforeNavigation() {
+        const select = document.querySelector(".goog-te-combo");
+        if (select && select.value !== "en") {
+          localStorage.setItem("selectedLanguage", select.value);
+          localStorage.setItem("languageTimestamp", Date.now());
+          console.log("Language saved before navigation:", select.value);
+        }
+      }
+
+      function googleTranslateElementInit() {
         new google.translate.TranslateElement(
           {
             pageLanguage: "en",
@@ -308,36 +238,24 @@
           "google_translate_element"
         );
 
-        // Apply saved language and monitor changes
-        setTimeout(applySavedLanguage, 1500);
-        monitorLanguageChanges();
-      }
-
-      function applySavedLanguage() {
-        const savedLang = getCookie("googtrans");
-        if (savedLang && savedLang !== "/en/en") {
-          const langCode = savedLang.split("/").pop();
-          setTimeout(() => {
+        // Additional language application after Google Translate loads
+        setTimeout(() => {
+          const savedLang = localStorage.getItem("selectedLanguage");
+          if (savedLang && savedLang !== "en") {
+            console.log(
+              "Applying language after Google Translate load:",
+              savedLang
+            );
             const select = document.querySelector(".goog-te-combo");
-            if (select) {
-              select.value = langCode;
+            if (select && select.value !== savedLang) {
+              select.value = savedLang;
               select.dispatchEvent(new Event("change"));
             }
-          }, 1000);
-        }
-      }
-
-      function monitorLanguageChanges() {
-        setInterval(() => {
-          const select = document.querySelector(".goog-te-combo");
-          if (select && !select.hasAttribute("data-listener-attached")) {
-            select.setAttribute("data-listener-attached", "true");
-            select.addEventListener("change", function () {
-              setCookie("googtrans", `/en/${this.value}`, 365);
-            });
           }
-        }, 1000);
+        }, 3000);
       }
     </script>
+
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </body>
 </html>

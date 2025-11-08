@@ -2,14 +2,39 @@ const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 const cors = require("cors");
-const nodemailer = require("nodemailer");
 require("dotenv").config(); // ✅ load .env
+
+// ✅ Brevo Email SDK (same as donors_app.js)
+const SibApiV3Sdk = require("sib-api-v3-sdk");
 
 const app = express();
 const DB_PATH = path.join(__dirname, "hospital.db");
 
 app.use(cors());
 app.use(express.json());
+
+// ✅ Secure Brevo API Setup (same as donors_app.js)
+const defaultClient = SibApiV3Sdk.ApiClient.instance;
+const apiKey = defaultClient.authentications["api-key"];
+apiKey.apiKey = process.env.BREVO_API_KEY; // loaded securely from .env
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+
+// ✅ Function to send email (same as donors_app.js)
+async function sendEmail(toEmail, subject, htmlContent) {
+  try {
+    await apiInstance.sendTransacEmail({
+      sender: { email: "bloodbanklocator247@gmail.com", name: "Life Link" },
+      to: [{ email: toEmail }],
+      subject,
+      htmlContent,
+    });
+    console.log("✅ Email sent successfully to:", toEmail);
+    return true;
+  } catch (error) {
+    console.error("❌ Error sending email:", error);
+    return false;
+  }
+}
 
 // Database setup
 const db = new sqlite3.Database(DB_PATH, (err) => {
@@ -38,22 +63,11 @@ db.serialize(() => {
   );
 });
 
-// ✅ Setup Brevo SMTP Transport (only key moved to env)
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: "bloodbanklocator247@gmail.com", // ✅ keep same email
-    pass: process.env.BREVO_KEY, // ✅ API key from .env
-  },
-});
-
 // ---- Routes ----
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
-// ✅ Register hospital and send email
-app.post("/api/register", (req, res) => {
+// ✅ Register hospital and send email using Brevo API
+app.post("/api/register", async (req, res) => {
   const {
     name,
     address,
@@ -80,7 +94,7 @@ app.post("/api/register", (req, res) => {
   db.run(
     stmt,
     [name, address, contactPerson, contactNumber, email, password, lat, lon],
-    function (err) {
+    async function (err) {
       if (err) {
         if (err.message.includes("UNIQUE constraint failed")) {
           return res.status(409).json({ error: "Email already registered" });
@@ -91,31 +105,52 @@ app.post("/api/register", (req, res) => {
 
       const hospitalId = this.lastID;
 
-      // ✅ Send registration email (email unchanged)
-      const mailOptions = {
-        from: '"Life Link" <bloodbanklocator247@gmail.com>',
-        to: email,
-        subject: "Hospital Registration Successful - Life Link",
-        html: `
-          <p>Dear ${name},</p>
-          <p>Your hospital has been successfully registered in the <b>Life Link Blood Bank System</b>.</p>
-          <p><b>Hospital ID:</b> ${hospitalId}</p>
-          <p><b>Contact Person:</b> ${contactPerson}</p>
-          <br/>
-          <p>Thank you for joining our network.</p>
-          <p>— <b>Life Link Team</b></p>
-        `,
-      };
+      // ✅ Send registration email using Brevo API
+      const subject = "Hospital Registration Successful - Life Link";
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #ec1313; text-align: center;">Life Link - Hospital Registration</h2>
+          <div style="background: #fcf8f8; padding: 20px; border-radius: 10px; border: 1px solid #e7cfcf;">
+            <h3 style="color: #1b0d0d;">Dear ${name},</h3>
+            <p style="color: #1b0d0d; font-size: 16px;">
+              Your hospital has been successfully registered in the <b>Life Link Blood Bank System</b>.
+            </p>
+            <div style="background: #f9f0f0; padding: 15px; border-radius: 5px; margin: 15px 0;">
+              <p style="margin: 5px 0;"><strong>Hospital ID:</strong> ${hospitalId}</p>
+              <p style="margin: 5px 0;"><strong>Hospital Name:</strong> ${name}</p>
+              <p style="margin: 5px 0;"><strong>Contact Person:</strong> ${contactPerson}</p>
+              <p style="margin: 5px 0;"><strong>Contact Number:</strong> ${contactNumber}</p>
+              <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+            </div>
+            <p style="color: #1b0d0d; font-size: 14px;">
+              You can now login to manage your blood stock and receive donation requests.
+            </p>
+            <p style="color: #1b0d0d; font-size: 14px;">
+              Thank you for joining our network and helping save lives.
+            </p>
+            <p style="color: #1b0d0d; font-size: 14px;">
+              Best regards,<br>
+              <strong>Life Link Team</strong>
+            </p>
+          </div>
+        </div>
+      `;
 
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error("Email send error:", error);
-        } else {
-          console.log("✅ Registration email sent:", info.response);
-        }
+      try {
+        await sendEmail(email, subject, htmlContent);
+        console.log("✅ Registration email sent to:", email);
+      } catch (emailError) {
+        console.error(
+          "❌ Email sending failed, but registration was successful"
+        );
+        // Don't fail the registration if email fails
+      }
+
+      res.json({
+        message: "Hospital registered successfully",
+        hospitalId,
+        emailSent: true,
       });
-
-      res.json({ message: "Hospital registered successfully", hospitalId });
     }
   );
 });
