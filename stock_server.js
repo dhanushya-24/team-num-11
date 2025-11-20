@@ -1,8 +1,10 @@
+// stock_server.js
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 const cors = require("cors");
 require("dotenv").config();
+const fetch = require("node-fetch"); // npm install node-fetch@2
 
 // ✅ Brevo Email SDK (same as donors_app.js)
 const SibApiV3Sdk = require("sib-api-v3-sdk");
@@ -13,26 +15,85 @@ const PORT = 5002;
 app.use(cors());
 app.use(express.json());
 
+// Startup debug
+console.log("Node version:", process.version);
+console.log("BREVO key length:", (process.env.BREVO_API_KEY || "").length);
+
 // ✅ Secure Brevo API Setup (same as donors_app.js)
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 const apiKey = defaultClient.authentications["api-key"];
-apiKey.apiKey = process.env.BREVO_API_KEY; // loaded securely from .env
+apiKey.apiKey = process.env.BREVO_API_KEY || ""; // loaded securely from .env
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-// ✅ Function to send email (same as donors_app.js)
-async function sendEmail(toEmail, subject, htmlContent) {
+// Robust sendEmail: try SDK with retries, fallback to fetch
+async function sendEmailSdkOnce(toEmail, subject, htmlContent) {
+  return apiInstance.sendTransacEmail({
+    sender: { email: "bloodbanklocator247@gmail.com", name: "Life Link" },
+    to: [{ email: toEmail }],
+    subject,
+    htmlContent,
+  });
+}
+
+async function sendEmailFetch(toEmail, subject, htmlContent) {
   try {
-    await apiInstance.sendTransacEmail({
-      sender: { email: "bloodbanklocator247@gmail.com", name: "Life Link" },
+    const body = {
+      sender: { name: "Life Link", email: "bloodbanklocator247@gmail.com" },
       to: [{ email: toEmail }],
       subject,
       htmlContent,
+    };
+
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": process.env.BREVO_API_KEY || "",
+      },
+      body: JSON.stringify(body),
+      timeout: 15000,
     });
-    console.log("✅ Email sent successfully to:", toEmail);
-    return true;
-  } catch (error) {
-    console.error("❌ Error sending email:", error);
-    return false;
+
+    const json = await res.json();
+    return json;
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function sendEmail(toEmail, subject, htmlContent) {
+  // Try SDK with retries
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      console.log(`Sending email via Sib SDK attempt ${attempt} to ${toEmail}`);
+      const resp = await sendEmailSdkOnce(toEmail, subject, htmlContent);
+      console.log("✅ Email sent successfully (SDK) to:", toEmail);
+      return { method: "sdk", response: resp };
+    } catch (err) {
+      console.error(
+        `❌ SDK send attempt ${attempt} failed:`,
+        err && err.message ? err.message : err
+      );
+      // If last attempt, try fetch fallback
+      if (attempt === maxAttempts) {
+        console.log("Attempting fetch fallback to Brevo API...");
+        try {
+          const fetchResp = await sendEmailFetch(toEmail, subject, htmlContent);
+          console.log("✅ Email sent successfully (fetch) to:", toEmail);
+          return { method: "fetch", response: fetchResp };
+        } catch (fetErr) {
+          console.error(
+            "❌ Fetch fallback also failed:",
+            fetErr && fetErr.message ? fetErr.message : fetErr
+          );
+          return { error: fetErr };
+        }
+      } else {
+        // small backoff
+        await new Promise((r) => setTimeout(r, 1000 * attempt));
+      }
+    }
   }
 }
 
@@ -46,6 +107,26 @@ const db = new sqlite3.Database(dbPath, (err) => {
     initializeDatabase();
   }
 });
+
+function ensureColumnExists(table, column, type, callback) {
+  db.all(`PRAGMA table_info(${table})`, (err, rows) => {
+    if (err) {
+      console.error("PRAGMA error", err);
+      return callback && callback(err);
+    }
+    const exists = rows.some((r) => r.name === column);
+    if (!exists) {
+      const sql = `ALTER TABLE ${table} ADD COLUMN ${column} ${type}`;
+      db.run(sql, (e) => {
+        if (e) console.error(`Error adding column ${column} to ${table}`, e);
+        else console.log(`Added column ${column} to ${table}`);
+        return callback && callback(e);
+      });
+    } else {
+      return callback && callback(null);
+    }
+  });
+}
 
 function initializeDatabase() {
   // Create hospitals table with ALL fields
@@ -89,6 +170,10 @@ function initializeDatabase() {
         console.error("Error creating blood_stock table:", err);
       } else {
         console.log("Blood stock table created/verified");
+        // Ensure expiry_date column exists (TEXT)
+        ensureColumnExists("blood_stock", "expiry_date", "TEXT", (e) => {
+          if (!e) console.log("expiry_date checked/created on blood_stock");
+        });
       }
     });
   });
@@ -175,106 +260,127 @@ app.post("/saveStock", async (req, res) => {
           return res.status(500).json({ success: false, error: err.message });
         }
 
-        const hospitalId = this.lastID || this.changes;
-        console.log("Hospital saved with ID:", hospitalId);
+        // After INSERT OR REPLACE, retrieve hospital id.
+        // Note: this.lastID may be 0 when REPLACE occurs; so select by name.
+        db.get(
+          `SELECT id FROM hospitals WHERE name = ?`,
+          [hospitalInfo.name],
+          (err2, row) => {
+            if (err2 || !row) {
+              console.error("Error fetching hospital id:", err2);
+              return res
+                .status(500)
+                .json({ success: false, error: "Cannot fetch hospital id" });
+            }
 
-        // First, delete existing blood stock for this hospital
-        const deleteExisting = `DELETE FROM blood_stock WHERE hospital_id = ?`;
+            const hospitalId = row.id;
+            console.log("Hospital saved with ID:", hospitalId);
 
-        db.run(deleteExisting, [hospitalId], (err) => {
-          if (err) {
-            console.error("Error deleting existing blood stock:", err);
-            return res.status(500).json({ success: false, error: err.message });
-          }
+            // First, delete existing blood stock for this hospital
+            const deleteExisting = `DELETE FROM blood_stock WHERE hospital_id = ?`;
 
-          // Insert new blood stock records
-          const insertBloodStock = `
-          INSERT INTO blood_stock (hospital_id, blood_group, units_needed, units_available)
-          VALUES (?, ?, ?, ?)
-        `;
-
-          const stmt = db.prepare(insertBloodStock);
-          let completed = 0;
-          const total = bloodGroups.length;
-
-          if (total === 0) {
-            // If no blood groups, just return success
-            stmt.finalize(async (err) => {
+            db.run(deleteExisting, [hospitalId], (err) => {
               if (err) {
-                console.error("Error finalizing blood stock insertion:", err);
+                console.error("Error deleting existing blood stock:", err);
                 return res
                   .status(500)
                   .json({ success: false, error: err.message });
               }
 
-              console.log(
-                "Data saved successfully for hospital:",
-                hospitalInfo.name
-              );
+              // Insert new blood stock records
+              // We include expiry_date; set it to 42 days from now by default
+              const insertBloodStock = `
+            INSERT INTO blood_stock (hospital_id, blood_group, units_needed, units_available, expiry_date)
+            VALUES (?, ?, ?, ?, date('now', '+42 days'))
+          `;
 
-              // Send email notification using Brevo API
-              const emailSent = await sendStockUpdateEmail(
-                hospitalInfo.email,
-                hospitalInfo.name
-              );
+              const stmt = db.prepare(insertBloodStock);
+              let completed = 0;
+              const total = bloodGroups.length;
 
-              res.json({
-                success: true,
-                hospitalId: hospitalId,
-                emailSent: emailSent,
+              if (total === 0) {
+                // If no blood groups, just return success
+                stmt.finalize(async (err) => {
+                  if (err) {
+                    console.error(
+                      "Error finalizing blood stock insertion:",
+                      err
+                    );
+                    return res
+                      .status(500)
+                      .json({ success: false, error: err.message });
+                  }
+
+                  console.log(
+                    "Data saved successfully for hospital:",
+                    hospitalInfo.name
+                  );
+
+                  // Send email notification using Brevo API
+                  const emailSent = await sendStockUpdateEmail(
+                    hospitalInfo.email,
+                    hospitalInfo.name
+                  );
+
+                  res.json({
+                    success: true,
+                    hospitalId: hospitalId,
+                    emailSent: emailSent,
+                  });
+                });
+                return;
+              }
+
+              bloodGroups.forEach((bg) => {
+                stmt.run(
+                  [
+                    hospitalId,
+                    bg.group,
+                    parseInt(bg.needed) || 0,
+                    parseInt(bg.available) || 0,
+                  ],
+                  (err) => {
+                    if (err) {
+                      console.error("Error saving blood stock:", err);
+                    }
+                    completed++;
+
+                    if (completed === total) {
+                      stmt.finalize(async (err) => {
+                        if (err) {
+                          console.error(
+                            "Error finalizing blood stock insertion:",
+                            err
+                          );
+                          return res
+                            .status(500)
+                            .json({ success: false, error: err.message });
+                        }
+
+                        console.log(
+                          "Data saved successfully for hospital:",
+                          hospitalInfo.name
+                        );
+
+                        // Send email notification using Brevo API
+                        const emailSent = await sendStockUpdateEmail(
+                          hospitalInfo.email,
+                          hospitalInfo.name
+                        );
+
+                        res.json({
+                          success: true,
+                          hospitalId: hospitalId,
+                          emailSent: emailSent,
+                        });
+                      });
+                    }
+                  }
+                );
               });
             });
-            return;
           }
-
-          bloodGroups.forEach((bg) => {
-            stmt.run(
-              [
-                hospitalId,
-                bg.group,
-                parseInt(bg.needed) || 0,
-                parseInt(bg.available) || 0,
-              ],
-              (err) => {
-                if (err) {
-                  console.error("Error saving blood stock:", err);
-                }
-                completed++;
-
-                if (completed === total) {
-                  stmt.finalize(async (err) => {
-                    if (err) {
-                      console.error(
-                        "Error finalizing blood stock insertion:",
-                        err
-                      );
-                      return res
-                        .status(500)
-                        .json({ success: false, error: err.message });
-                    }
-
-                    console.log(
-                      "Data saved successfully for hospital:",
-                      hospitalInfo.name
-                    );
-
-                    // Send email notification using Brevo API
-                    const emailSent = await sendStockUpdateEmail(
-                      hospitalInfo.email,
-                      hospitalInfo.name
-                    );
-
-                    res.json({
-                      success: true,
-                      hospitalId: hospitalId,
-                      emailSent: emailSent,
-                    });
-                  });
-                }
-              }
-            );
-          });
-        });
+        );
       }
     );
   });
@@ -293,7 +399,8 @@ app.get("/getStock/:hospitalName", (req, res) => {
       h.email,
       bs.blood_group,
       bs.units_needed,
-      bs.units_available
+      bs.units_available,
+      bs.expiry_date
     FROM hospitals h
     LEFT JOIN blood_stock bs ON h.id = bs.hospital_id
     WHERE h.name = ?
@@ -327,6 +434,7 @@ app.get("/getStock/:hospitalName", (req, res) => {
         blood_group: row.blood_group,
         units_needed: row.units_needed,
         units_available: row.units_available,
+        expiry_date: row.expiry_date,
       }));
 
     res.json({
@@ -371,6 +479,23 @@ app.get("/bloodstock", (req, res) => {
   });
 });
 
+// ⭐ NEW: Expiry endpoint for dashboard
+app.get("/expiry", (req, res) => {
+  const query = `
+    SELECT bs.id, bs.blood_group, bs.units_available, bs.expiry_date, h.name as hospital_name, h.email
+    FROM blood_stock bs
+    JOIN hospitals h ON h.id = bs.hospital_id
+    ORDER BY bs.expiry_date ASC
+  `;
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error("Error fetching expiry data:", err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+    res.json(rows || []);
+  });
+});
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.json({
@@ -387,6 +512,7 @@ app.listen(PORT, () => {
   console.log(`  GET  /getStock/:hospitalName - Get hospital data`);
   console.log(`  GET  /hospitals - List all hospitals (debug)`);
   console.log(`  GET  /bloodstock - List all blood stock (debug)`);
+  console.log(`  GET  /expiry - Return expiry information for dashboard`);
   console.log(`  GET  /health - Health check`);
   console.log(`✅ Brevo Email API configured with your existing API key`);
 });

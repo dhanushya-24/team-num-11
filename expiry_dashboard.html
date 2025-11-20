@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Expiry Dashboard - Life Link</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #fafafa;
+        margin: 20px;
+      }
+      h1 {
+        color: #b00020;
+      }
+      .card {
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        margin-bottom: 12px;
+      }
+      .expired {
+        background: #f2f2f2;
+      }
+      .critical {
+        background: #ffd6d6;
+      }
+      .soon {
+        background: #fff0d6;
+      }
+      .ok {
+        background: #e8f9e8;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🩸 Blood Expiry Dashboard</h1>
+    <p>Shows hospital stock expiry (calculated as stock update + 42 days)</p>
+    <div id="list">Loading...</div>
+
+    <script>
+      async function loadExpiry() {
+        try {
+          const res = await fetch("http://localhost:5002/expiry");
+          const rows = await res.json();
+          const list = document.getElementById("list");
+          list.innerHTML = "";
+
+          if (!rows || rows.length === 0) {
+            list.innerHTML = '<div class="card">No stock items found</div>';
+            return;
+          }
+
+          rows.forEach((r) => {
+            const expiry = new Date(r.expiry_date);
+            const today = new Date();
+            const diff = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+            let cls = "ok";
+            if (diff < 0) cls = "expired";
+            else if (diff <= 7) cls = "critical";
+            else if (diff <= 15) cls = "soon";
+
+            const card = document.createElement("div");
+            card.className = `card ${cls}`;
+            card.innerHTML = `
+        <strong>${r.blood_group}</strong> — ${r.hospital_name} <br/>
+        Units Available: <strong>${r.units_available}</strong> &nbsp; Expiry: <strong>${r.expiry_date}</strong> <br/>
+        Days left: <strong>${diff}</strong>
+      `;
+            list.appendChild(card);
+          });
+        } catch (e) {
+          console.error("Error loading expiry:", e);
+          document.getElementById("list").innerText = "Error loading data";
+        }
+      }
+
+      loadExpiry();
+    </script>
+  </body>
+</html>

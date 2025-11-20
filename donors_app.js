@@ -48,12 +48,31 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
     process.exit(1);
   } else {
     console.log("Connected to donors.db");
+    initializeDonorsTable();
   }
 });
 
-// ✅ Create donors table if not exists
-db.run(
-  `CREATE TABLE IF NOT EXISTS donors (
+function ensureColumnExistsDonors(column, type, cb) {
+  db.all(`PRAGMA table_info(donors)`, (err, rows) => {
+    if (err) {
+      console.error("PRAGMA error", err);
+      return cb && cb(err);
+    }
+    const exists = rows.some((r) => r.name === column);
+    if (!exists) {
+      db.run(`ALTER TABLE donors ADD COLUMN ${column} ${type}`, (e) => {
+        if (e) console.error(`Error adding column ${column}`, e);
+        else console.log(`Added column ${column} to donors`);
+        cb && cb(e);
+      });
+    } else cb && cb(null);
+  });
+}
+
+function initializeDonorsTable() {
+  // Create donors table if not exists (including expiry_date column in case it's present)
+  db.run(
+    `CREATE TABLE IF NOT EXISTS donors (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     dob TEXT,
@@ -65,11 +84,18 @@ db.run(
     password_hash TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`,
-  (err) => {
-    if (err) console.error("Error creating donors table:", err.message);
-    else console.log("donors table ready");
-  }
-);
+    (err) => {
+      if (err) console.error("Error creating donors table:", err.message);
+      else {
+        console.log("donors table ready");
+        // Ensure expiry_date column exists
+        ensureColumnExistsDonors("expiry_date", "TEXT", (e) => {
+          if (!e) console.log("expiry_date column checked/created for donors");
+        });
+      }
+    }
+  );
+}
 
 // ==================== API ROUTES ====================
 
@@ -87,8 +113,8 @@ app.post("/api/register", async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
 
-    const stmt = `INSERT INTO donors (name, dob, gender, bloodType, contact, email, address, password_hash)
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    const stmt = `INSERT INTO donors (name, dob, gender, bloodType, contact, email, address, password_hash, expiry_date)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, date('now', '+42 days'))`;
 
     db.run(
       stmt,
