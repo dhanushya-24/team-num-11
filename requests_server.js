@@ -1,4 +1,4 @@
-// requests_server.js
+// requests_server.js (fixed - queries donors.db correctly and creates commitments)
 require("dotenv").config(); // ✅ Load variables from .env at the very top
 
 const express = require("express");
@@ -16,6 +16,9 @@ const apiKey = defaultClient.authentications["api-key"];
 apiKey.apiKey = process.env.BREVO_API_KEY;
 
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+
+// node-fetch to call commitments server
+const fetch = require("node-fetch"); // ensure node-fetch@2 installed
 
 async function sendEmailSingle(toEmail, subject, htmlContent) {
   try {
@@ -93,15 +96,18 @@ requestsDb.run(
   }
 );
 
+// Ensure donors table exists (matches donors_app.js columns)
 donorsDb.run(
   `CREATE TABLE IF NOT EXISTS donors (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
-    email TEXT UNIQUE,
-    phone TEXT,
+    dob TEXT,
+    gender TEXT,
     bloodType TEXT,
-    city TEXT,
-    lastDonationDate TEXT,
+    contact TEXT,
+    email TEXT UNIQUE,
+    address TEXT,
+    password_hash TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`,
   (err) => {
@@ -130,7 +136,7 @@ hospitalDb.run(
   API: POST /api/requests
   - Saves the request into requests.db
   - Sends confirmation email to hospital contact (contactDetails)
-  - Finds donors with the same bloodType in donors.db and sends each an email
+  - Finds donors with the same bloodType in donors.db and sends each an email (via commitments server)
 */
 app.post("/api/requests", (req, res) => {
   const {
@@ -164,7 +170,7 @@ app.post("/api/requests", (req, res) => {
       dateTime || null,
       notes || null,
     ],
-    function (err) {
+    async function (err) {
       if (err) {
         console.error("DB insert error:", err);
         return res.status(500).json({ error: "Failed to save request" });
@@ -186,34 +192,100 @@ app.post("/api/requests", (req, res) => {
         sendEmailSingle(contactDetails, subject, html);
       }
 
-      // 2) Notify matching donors
+      // 2) Notify matching donors — select columns that exist in donors.db and alias contact/address
       if (bloodType) {
         donorsDb.all(
-          `SELECT name, email, phone, city FROM donors WHERE bloodType = ?`,
+          `SELECT id, name, email, contact AS phone, address AS city, bloodType FROM donors WHERE bloodType = ?`,
           [bloodType],
-          (err, donors) => {
+          async (err, donors) => {
             if (err) {
               console.error("Error querying donors:", err);
             } else if (!donors || donors.length === 0) {
               console.log("No donors found for blood type:", bloodType);
             } else {
               console.log(
-                `Found ${donors.length} donor(s) for ${bloodType}. Sending emails...`
+                `Found ${donors.length} donor(s) for ${bloodType}. Creating commitments and sending emails...`
               );
-              donors.forEach((donor) => {
-                if (!donor.email) return;
-                const subject = `Urgent: ${bloodType} Blood Needed at ${
-                  hospitalName || "nearby hospital"
-                }`;
-                const html = `<p>Dear ${donor.name || "Donor"},</p>
-                  <p>There is an urgent need for <b>${bloodType}</b> blood at <b>${
-                  hospitalName || "a hospital"
-                }</b>.</p>
-                  <p>Contact: <b>${contactDetails || "not provided"}</b></p>
-                  <p>If you are available to donate, please contact the hospital immediately.</p>
-                  <br/><p>Thank you for saving lives.<br/><b>Life Link Team</b></p>`;
-                sendEmailSingle(donor.email, subject, html);
-              });
+
+              // Prepare matches payload for commitments server
+              const matches = donors
+                .filter((d) => d.email)
+                .map((d) => ({ donor_id: d.id, email: d.email, name: d.name }));
+
+              // Try to create commitments via commitments server (preferred)
+              try {
+                const resp = await fetch(
+                  "http://localhost:4001/createCommitments",
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      requestId: insertedId,
+                      matches,
+                      requestSummary: {
+                        blood_type: bloodType,
+                        city: hospitalName || "",
+                        requester_name: contactPerson || "",
+                      },
+                    }),
+                  }
+                );
+
+                let json;
+                try {
+                  json = await resp.json();
+                } catch (parseErr) {
+                  // Non-json response OK — log status
+                  console.warn("createCommitments returned non-json", parseErr);
+                }
+
+                console.log("createCommitments response:", json || resp.status);
+
+                // If commitments server failed to send emails, fallback to sending directly
+                if (
+                  !json ||
+                  !json.success ||
+                  (Array.isArray(json.results) &&
+                    json.results.some((r) => !r.emailSent))
+                ) {
+                  console.log("Fallback: sending emails directly to donors");
+                  donors.forEach((donor) => {
+                    if (!donor.email) return;
+                    const subject = `Urgent: ${bloodType} Blood Needed at ${
+                      hospitalName || "nearby hospital"
+                    }`;
+                    const html = `<p>Dear ${donor.name || "Donor"},</p>
+                      <p>There is an urgent need for <b>${bloodType}</b> blood at <b>${
+                      hospitalName || "a hospital"
+                    }</b>.</p>
+                      <p>Contact: <b>${contactDetails || "not provided"}</b></p>
+                      <p>If you are available to donate, please contact the hospital immediately.</p>
+                      <br/><p>Thank you,<br/><b>Life Link Team</b></p>`;
+                    sendEmailSingle(donor.email, subject, html);
+                  });
+                } else {
+                  console.log(
+                    "Commitments created and emails dispatched by commitments server."
+                  );
+                }
+              } catch (createErr) {
+                console.error("Failed to call commitments server:", createErr);
+                // fallback: send emails directly
+                donors.forEach((donor) => {
+                  if (!donor.email) return;
+                  const subject = `Urgent: ${bloodType} Blood Needed at ${
+                    hospitalName || "nearby hospital"
+                  }`;
+                  const html = `<p>Dear ${donor.name || "Donor"},</p>
+                    <p>There is an urgent need for <b>${bloodType}</b> blood at <b>${
+                    hospitalName || "a hospital"
+                  }</b>.</p>
+                    <p>Contact: <b>${contactDetails || "not provided"}</b></p>
+                    <p>If you can donate, please contact the hospital immediately.</p>
+                    <br/><p>Thank you,<br/><b>Life Link Team</b></p>`;
+                  sendEmailSingle(donor.email, subject, html);
+                });
+              }
             }
           }
         );
@@ -243,6 +315,15 @@ app.get("/api/requests/latest", (req, res) => {
       res.json(row);
     }
   );
+});
+
+// Admin helper: returns requests joined to commitments (if commitments table exists)
+app.get("/all-requests-with-commitments", (req, res) => {
+  const q = `SELECT r.*, c.id as commitment_id, c.status as commitment_status FROM requests r LEFT JOIN commitments c ON r.id = c.request_id ORDER BY r.created_at DESC`;
+  requestsDb.all(q, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ rows: rows || [] });
+  });
 });
 
 app.listen(PORT, () => {

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Respond to Blood Request — Life Link</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Public Sans", system-ui, sans-serif;
+        background: #fcf8f8;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex items-center justify-center p-6">
+    <div class="max-w-xl w-full bg-white rounded-2xl shadow p-6">
+      <h1 class="text-2xl font-bold text-[#1b0d0d] mb-3">
+        Respond to Donation Request
+      </h1>
+      <div id="status" class="text-sm text-gray-600 mb-4">Loading request…</div>
+
+      <div id="requestCard" class="space-y-3 hidden">
+        <div class="bg-gray-50 p-4 rounded">
+          <p><strong>Request ID:</strong> <span id="reqId"></span></p>
+          <p><strong>Hospital:</strong> <span id="reqHospital"></span></p>
+          <p><strong>Blood Type:</strong> <span id="reqBlood"></span></p>
+          <p><strong>Requested By:</strong> <span id="reqBy"></span></p>
+          <p class="text-sm text-gray-500">
+            <strong>Created:</strong> <span id="reqCreated"></span>
+          </p>
+        </div>
+
+        <div class="flex gap-3">
+          <button
+            id="acceptBtn"
+            class="flex-1 bg-green-600 text-white py-2 rounded-lg font-semibold"
+          >
+            I can donate
+          </button>
+          <button
+            id="declineBtn"
+            class="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg"
+          >
+            I cannot
+          </button>
+        </div>
+
+        <div id="message" class="mt-4 text-sm"></div>
+      </div>
+    </div>
+
+    <script>
+      // read token from URL
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+
+      const statusEl = document.getElementById("status");
+      const card = document.getElementById("requestCard");
+      const reqIdEl = document.getElementById("reqId");
+      const hospitalEl = document.getElementById("reqHospital");
+      const bloodEl = document.getElementById("reqBlood");
+      const reqByEl = document.getElementById("reqBy");
+      const createdEl = document.getElementById("reqCreated");
+      const messageEl = document.getElementById("message");
+
+      const acceptBtn = document.getElementById("acceptBtn");
+      const declineBtn = document.getElementById("declineBtn");
+
+      if (!token) {
+        statusEl.innerText = "Missing token in URL.";
+      } else {
+        // fetch commitment data
+        fetch(`/respond/${encodeURIComponent(token)}`)
+          .then((r) => {
+            if (!r.ok) throw new Error("Commitment not found");
+            return r.json();
+          })
+          .then((data) => {
+            // API returns { commitment: { ... } }
+            const c = data.commitment;
+            if (!c) throw new Error("Commitment not found");
+            statusEl.classList.add("hidden");
+            card.classList.remove("hidden");
+
+            reqIdEl.innerText = c.id;
+            hospitalEl.innerText = c.request_id || "N/A";
+            bloodEl.innerText = (c.request_id && "See request") || "N/A";
+            reqByEl.innerText = c.donor_id ? `Donor ID ${c.donor_id}` : "N/A";
+            createdEl.innerText = new Date(
+              c.created_at || c.responded_at || Date.now()
+            ).toLocaleString();
+
+            // if already responded show status
+            if (c.status && c.status !== "Pending") {
+              acceptBtn.disabled = true;
+              declineBtn.disabled = true;
+              messageEl.innerHTML = `<strong>Status:</strong> ${c.status} (${
+                c.responded_at || ""
+              })`;
+            }
+          })
+          .catch((err) => {
+            statusEl.innerText = "Unable to load request: " + err.message;
+          });
+      }
+
+      function sendResponse(action) {
+        if (!token) return;
+        acceptBtn.disabled = true;
+        declineBtn.disabled = true;
+        messageEl.innerText = "Sending response…";
+        fetch(`/respond/${encodeURIComponent(token)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action }), // action: 'accept' or 'decline'
+        })
+          .then((r) => r.json())
+          .then((j) => {
+            if (j && j.success) {
+              messageEl.innerHTML = `<strong>Response recorded:</strong> ${
+                j.status || "OK"
+              }. Check your email for confirmation and donation next steps.`;
+              // if accepted show link to confirm page (commitment id returned via email; but we can fetch commitments-for-donor later)
+            } else {
+              messageEl.innerText =
+                "Server response: " + (j.error || JSON.stringify(j));
+              acceptBtn.disabled = false;
+              declineBtn.disabled = false;
+            }
+          })
+          .catch((e) => {
+            messageEl.innerText = "Network error: " + e.message;
+            acceptBtn.disabled = false;
+            declineBtn.disabled = false;
+          });
+      }
+
+      acceptBtn.addEventListener("click", () => sendResponse("accept"));
+      declineBtn.addEventListener("click", () => sendResponse("decline"));
+    </script>
+  </body>
+</html>

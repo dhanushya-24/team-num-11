@@ -70,7 +70,7 @@ function ensureColumnExistsDonors(column, type, cb) {
 }
 
 function initializeDonorsTable() {
-  // Create donors table if not exists (including expiry_date column in case it's present)
+  // Create donors table if not exists (matches the frontend fields)
   db.run(
     `CREATE TABLE IF NOT EXISTS donors (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,10 +88,20 @@ function initializeDonorsTable() {
       if (err) console.error("Error creating donors table:", err.message);
       else {
         console.log("donors table ready");
-        // Ensure expiry_date column exists
+        // Ensure expiry_date column exists (used for expiry tracking)
         ensureColumnExistsDonors("expiry_date", "TEXT", (e) => {
           if (!e) console.log("expiry_date column checked/created for donors");
         });
+
+        // Ensure donations_count exists for leaderboard increments
+        ensureColumnExistsDonors(
+          "donations_count",
+          "INTEGER DEFAULT 0",
+          (e) => {
+            if (!e)
+              console.log("donations_count column checked/created for donors");
+          }
+        );
       }
     }
   );

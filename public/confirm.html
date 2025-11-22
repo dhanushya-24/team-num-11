@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Confirm Donation — Life Link</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Public Sans", sans-serif;
+        background: #fcf8f8;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex items-center justify-center p-6">
+    <div class="max-w-lg w-full bg-white rounded-2xl shadow p-6">
+      <h1 class="text-2xl font-bold mb-4">Confirm Donation</h1>
+      <div id="info" class="text-sm text-gray-600 mb-4">Loading…</div>
+
+      <form id="confirmForm" class="space-y-3 hidden">
+        <input type="hidden" id="commitmentId" />
+        <label class="block">
+          <span class="text-sm font-medium">Donation Date</span>
+          <input
+            id="donationDate"
+            type="date"
+            class="w-full border rounded p-2 mt-1"
+            required
+          />
+        </label>
+        <div class="flex gap-3">
+          <button
+            type="submit"
+            class="flex-1 bg-[#ec1313] text-white py-2 rounded-lg"
+          >
+            Confirm Donation
+          </button>
+          <a href="/" class="flex-1 text-center py-2 rounded-lg border"
+            >Cancel</a
+          >
+        </div>
+        <div id="msg" class="text-sm mt-2"></div>
+      </form>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const commitId =
+        params.get("commitment") ||
+        params.get("commitment_id") ||
+        params.get("id");
+
+      const info = document.getElementById("info");
+      const form = document.getElementById("confirmForm");
+      const commitInput = document.getElementById("commitmentId");
+      const donationDate = document.getElementById("donationDate");
+      const msg = document.getElementById("msg");
+
+      if (!commitId) {
+        info.innerText = "Missing commitment id in URL.";
+      } else {
+        info.classList.add("hidden");
+        form.classList.remove("hidden");
+        commitInput.value = commitId;
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          msg.innerText = "Saving confirmation…";
+          fetch("/confirm", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              commitment_id: commitId,
+              donation_date: donationDate.value,
+            }),
+          })
+            .then((r) => r.json())
+            .then((j) => {
+              if (j.success) {
+                msg.innerText =
+                  "Donation confirmed — thank you! You will receive a confirmation email.";
+                form.querySelector("button[type=submit]").disabled = true;
+              } else {
+                msg.innerText = "Error: " + (j.error || JSON.stringify(j));
+              }
+            })
+            .catch((e) => {
+              msg.innerText = "Network error: " + e.message;
+            });
+        });
+      }
+    </script>
+  </body>
+</html>

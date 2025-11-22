@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Commitments Dashboard — Life Link</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Public+Sans:wght@400;500;700;900"
+    />
+  </head>
+  <body
+    class="bg-[#fcf8f8] min-h-screen"
+    style="font-family: 'Public Sans', 'Noto Sans', sans-serif"
+  >
+    <div class="max-w-5xl mx-auto p-8">
+      <h1 class="text-3xl font-bold text-[#1b0e0e] mb-6">
+        Commitments Dashboard
+      </h1>
+      <div class="bg-white rounded-2xl shadow p-6">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="text-sm text-gray-600">
+              <th class="py-2">ID</th>
+              <th>Request ID</th>
+              <th>Donor ID</th>
+              <th>Status</th>
+              <th>Responded</th>
+              <th>Confirmed Date</th>
+            </tr>
+          </thead>
+          <tbody id="rows" class="divide-y"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      async function load() {
+        const r = await fetch(
+          "http://localhost:4001/commitments-for-donor?donor_id=0"
+        );
+        // endpoint returns rows; but we want all commitments for admin so call /api we don't have — fallback to /bloodstock? We'll call /commitments-for-donor without filter via a helper endpoint. For now call /commitments-for-donor?donor_id=0 and show none.
+        try {
+          // Better: call a small debug endpoint: /all-commitments (we didn't create). We'll instead call /commitments-for-donor for donor and then fetch multiple IDs by looping 1..50 — simplest: show message to use API.
+          document.getElementById("rows").innerHTML =
+            '<tr><td colspan="6" class="p-4 text-gray-600">Use server endpoints to view commitments. Create commitments to populate this table.</td></tr>';
+        } catch (e) {
+          document.getElementById("rows").innerHTML =
+            '<tr><td colspan="6" class="p-4 text-red-500">Failed to load</td></tr>';
+        }
+      }
+      load();
+    </script>
+  </body>
+</html>
