@@ -31,12 +31,21 @@
       <!-- Header with Edit Profile -->
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-3xl font-bold text-[#1b0d0d]">User Profile</h2>
-        <button
-          onclick="editProfile()"
-          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          Edit Profile
-        </button>
+        <div class="flex gap-3">
+          <button
+            onclick="window.location.href='leaderboard.html'"
+            class="px-4 py-2 bg-[#ec1313] text-white rounded-lg hover:bg-[#c40f0f] transition"
+          >
+            Scoreboard
+          </button>
+
+          <button
+            onclick="window.location.href='reviews.html'"
+            class="px-4 py-2 bg-[#ec1313] text-white rounded-lg hover:bg-[#c40f0f] transition"
+          >
+            Reviews
+          </button>
+        </div>
       </div>
 
       <!-- Profile Details -->
@@ -240,11 +249,6 @@
           document.getElementById("locationStatus").innerText =
             "Location: Not Supported";
         }
-      }
-
-      // Edit Profile
-      function editProfile() {
-        window.location.href = "donor.html"; // redirect to registration for editing
       }
 
       // Logout
