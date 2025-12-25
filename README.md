@@ -78,7 +78,7 @@ This database design ensures high data integrity, easy debugging, and efficient 
 
 🧬 Blood Expiry Calculation
 
-Donated blood is considered safe for use up to 54 days from the donation date.
+Donated blood is considered safe for use up to 42 days from the donation date.
 This limit is based on biological safety, as the quality of white blood cells and other blood components degrades beyond this period.
 Implementation Highlights:
 Expiry date is auto-calculated and stored in the database
